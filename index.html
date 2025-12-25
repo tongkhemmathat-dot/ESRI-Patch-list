@@ -235,7 +235,9 @@
   </div>
 
   <div class="bar">
-    <select id="versionSel" title="Version"></select>
+    <button class="btn toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
+      <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
+<select id="versionSel" title="Version"></select>
     <input id="q" type="search" placeholder="Search: patch name, ID, summary, URLs ..." />
     <select id="componentSel" title="Component">
       <option value="">All components</option>
@@ -258,6 +260,8 @@
 </header>
 
 <main>
+<section id="patchView">
+
   <div class="meta">
     <span class="badge" id="verBadge"></span>
     <span class="badge" id="countBadge"></span>
@@ -286,6 +290,67 @@
       <tbody id="tbody"></tbody>
     </table>
   </div>
+
+</section>
+
+<section id="softwareView" style="display:none;">
+  <div class="meta">
+    <span class="badge" id="swBadge">Software</span>
+    <span class="badge" id="swCount"></span>
+    <span class="hint" id="swStatus"></span>
+  </div>
+
+  <div class="bar" style="margin:0 0 12px;">
+    <select id="swVersionSel" title="Version">
+      <option value="">All versions</option>
+    </select>
+    <select id="swCompSel" title="Component">
+      <option value="">All components</option>
+      <option value="ArcGIS Server">ArcGIS Server</option>
+      <option value="Portal">Portal</option>
+      <option value="Data Store">Data Store</option>
+      <option value="Notebook">Notebook</option>
+      <option value="Web Adaptor">Web Adaptor</option>
+      <option value="Desktop">Desktop</option>
+      <option value="Pro">Pro</option>
+      <option value="Enterprise">Enterprise</option>
+      <option value="Other">Other</option>
+    </select>
+    <input id="swQ" type="search" placeholder="Search filename..." />
+    <button class="btn" id="swReload" type="button">Reload</button>
+  </div>
+
+  <div class="tablewrap">
+    <table class="table-head">
+      <colgroup>
+        <col style="width:110px"/>
+        <col style="width:140px"/>
+        <col style="width:auto"/>
+        <col style="width:110px"/>
+        <col style="width:240px"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Component</th>
+          <th>Filename</th>
+          <th>Size (GB)</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+    </table>
+    <table class="table-body">
+      <colgroup>
+        <col style="width:110px"/>
+        <col style="width:140px"/>
+        <col style="width:auto"/>
+        <col style="width:110px"/>
+        <col style="width:240px"/>
+      </colgroup>
+      <tbody id="swTbody"></tbody>
+    </table>
+  </div>
+</section>
 </main>
 
 <footer>
@@ -483,5 +548,183 @@ document.getElementById("clearBtn").addEventListener("click", () => {
 
 renderTable();
 </script>
+
+<script>
+// ===== Software download view (from Google Sheet CSV) =====
+const SOFTWARE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1XU3pUMOnohtXhxOKH0OJqe5nPWOQHwgdl6NDbhPtwD0/export?format=csv&gid=0';
+let SOFTWARE_ROWS = [];
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [], cur = "", inQ = false;
+  for (let i=0;i<text.length;i++) {
+    const ch = text[i], nx = text[i+1];
+    if (ch === '"' && inQ && nx === '"') { cur += '"'; i++; continue; }
+    if (ch === '"') { inQ = !inQ; continue; }
+    if (!inQ && ch === ',') { row.push(cur); cur=""; continue; }
+    if (!inQ && (ch === '\n' || ch === '\r')) {
+      if (ch === '\r' && nx === '\n') i++;
+      row.push(cur); rows.push(row);
+      row = []; cur=""; continue;
+    }
+    cur += ch;
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  return rows.map(r => r.map(c => (c ?? '').trim()));
+}
+
+function inferVersionFromPath(folderPath) {
+  const fp = (folderPath || '');
+  let m = fp.match(/ArcGIS(\d{3,4})\b/i);
+  if (m) {
+    const s = m[1];
+    if (s.length === 3 && s.startsWith('11')) return `11.${s[2]}`;
+    if (s.length === 4) return `10.${s[2]}.${s[3]}`;
+  }
+  m = fp.match(/\b(\d{1,2}\.\d{1,2}\.\d{1,2})\b/);
+  if (m) return m[1];
+  m = fp.match(/\b(\d{1,2}\.\d{1,2})\b/);
+  if (m) return m[1];
+  return '';
+}
+
+function inferComponent(filename) {
+  const n = (filename || '').toLowerCase();
+  if (n.startsWith('portal')) return 'Portal';
+  if (n.includes('datastore')) return 'Data Store';
+  if (n.includes('notebook')) return 'Notebook';
+  if (n.includes('web_adaptor') || n.includes('webadaptor') || n.includes('web adaptor')) return 'Web Adaptor';
+  if (n.includes('desktop')) return 'Desktop';
+  if (n.includes('arcgis_pro') || n.includes('arcgispro') || n.includes('pro_')) return 'Pro';
+  if (n.includes('enterprise')) return 'Enterprise';
+  if (n.includes('server')) return 'ArcGIS Server';
+  return 'Other';
+}
+
+async function loadSoftwareFromSheet() {
+  const swStatus = document.getElementById('swStatus');
+  swStatus.textContent = 'Loading software list...';
+  const res = await fetch(SOFTWARE_CSV_URL, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch CSV: HTTP ' + res.status);
+  const txt = await res.text();
+  const rows = parseCsv(txt);
+  const header = rows[0] || [];
+
+  const idx = {
+    folder: header.indexOf('Folder Path'),
+    name: header.indexOf('Filename'),
+    size: header.indexOf('Size (GB)'),
+    dl: header.indexOf('Direct Download'),
+    view: header.indexOf('Web View'),
+    updated: header.indexOf('Last Updated'),
+  };
+  if (idx.name < 0 || idx.dl < 0) {
+    throw new Error("CSV header missing required columns: 'Filename' and 'Direct Download'");
+  }
+
+  const out = [];
+  for (let i=1;i<rows.length;i++) {
+    const r = rows[i];
+    const filename = (r[idx.name] || '').trim();
+    if (!filename) continue;
+    if (!filename.startsWith('ArcGIS') && !filename.startsWith('Portal')) continue;
+
+    const folderPath = idx.folder >= 0 ? (r[idx.folder] || '') : '';
+    const version = inferVersionFromPath(folderPath);
+    const component = inferComponent(filename);
+
+    out.push({
+      version,
+      component,
+      filename,
+      sizeGB: idx.size >= 0 ? (r[idx.size] || '') : '',
+      direct: (r[idx.dl] || ''),
+      view: idx.view >= 0 ? (r[idx.view] || '') : '',
+      updated: idx.updated >= 0 ? (r[idx.updated] || '') : '',
+      folderPath
+    });
+  }
+
+  SOFTWARE_ROWS = out;
+  buildSoftwareFilters();
+  renderSoftware();
+  swStatus.textContent = `Loaded ${out.length} items.`;
+}
+
+function buildSoftwareFilters() {
+  const sel = document.getElementById('swVersionSel');
+  const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)))
+    .sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+  sel.innerHTML = '<option value="">All versions</option>';
+  for (const v of versions) {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
+  }
+}
+
+function renderSoftware() {
+  const v = document.getElementById('swVersionSel').value;
+  const c = document.getElementById('swCompSel').value;
+  const q = (document.getElementById('swQ').value || '').toLowerCase().trim();
+
+  let rows = SOFTWARE_ROWS.slice();
+  if (v) rows = rows.filter(r => r.version === v);
+  if (c) rows = rows.filter(r => r.component === c);
+  if (q) rows = rows.filter(r => (r.filename || '').toLowerCase().includes(q));
+
+  document.getElementById('swBadge').textContent = v ? `Software version: ${v}` : 'Software: All versions';
+  document.getElementById('swCount').textContent = `Items: ${rows.length}`;
+
+  const tb = document.getElementById('swTbody');
+  tb.innerHTML = rows.map(r => `
+    <tr>
+      <td class="nowrap">${escapeHtml(r.version || '')}</td>
+      <td class="nowrap">${escapeHtml(r.component || '')}</td>
+      <td class="wrap">${escapeHtml(r.filename || '')}</td>
+      <td class="nowrap">${escapeHtml(r.sizeGB || '')}</td>
+      <td>
+        <div class="actions">
+          ${r.view ? `<a class="pill open" href="${escapeHtml(r.view)}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
+          ${r.direct ? `<a class="pill dl" href="${escapeHtml(r.direct)}" target="_blank" rel="noopener noreferrer" download>Download</a>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Tabs
+const tabPatch = document.getElementById('tabPatch');
+const tabSoftware = document.getElementById('tabSoftware');
+const patchView = document.getElementById('patchView');
+const softwareView = document.getElementById('softwareView');
+
+function setTab(which) {
+  const isPatch = which === 'patch';
+  patchView.style.display = isPatch ? '' : 'none';
+  softwareView.style.display = isPatch ? 'none' : '';
+  tabPatch.classList.toggle('toggle', isPatch);
+  tabSoftware.classList.toggle('toggle', !isPatch);
+  tabPatch.setAttribute('aria-pressed', String(isPatch));
+  tabSoftware.setAttribute('aria-pressed', String(!isPatch));
+}
+
+tabPatch?.addEventListener('click', () => setTab('patch'));
+tabSoftware?.addEventListener('click', async () => {
+  setTab('software');
+  if (!SOFTWARE_ROWS.length) {
+    try { await loadSoftwareFromSheet(); }
+    catch (e) {
+      document.getElementById('swStatus').textContent = 'Error: ' + (e?.message || e);
+    }
+  }
+});
+
+document.getElementById('swVersionSel')?.addEventListener('change', renderSoftware);
+document.getElementById('swCompSel')?.addEventListener('change', renderSoftware);
+document.getElementById('swQ')?.addEventListener('input', renderSoftware);
+document.getElementById('swReload')?.addEventListener('click', loadSoftwareFromSheet);
+</script>
+
 </body>
 </html>
