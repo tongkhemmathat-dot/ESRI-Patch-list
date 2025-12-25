@@ -236,8 +236,9 @@
 
   <div class="bar">
     <button class="btn toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
-      <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
-<select id="versionSel" title="Version"></select>
+    <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
+    <button class="btn" id="downloadReg" type="button" data-url="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg">Download Script ปิด Patch ArcGIS Pro</button>
+    <select id="versionSel" title="Version"></select>
     <input id="q" type="search" placeholder="Search: patch name, ID, summary, URLs ..." />
     <select id="componentSel" title="Component">
       <option value="">All components</option>
@@ -724,6 +725,26 @@ document.getElementById('swVersionSel')?.addEventListener('change', renderSoftwa
 document.getElementById('swCompSel')?.addEventListener('change', renderSoftware);
 document.getElementById('swQ')?.addEventListener('input', renderSoftware);
 document.getElementById('swReload')?.addEventListener('click', loadSoftwareFromSheet);
+
+const downloadBtn = document.getElementById('downloadReg');
+downloadBtn?.addEventListener('click', async () => {
+  const url = downloadBtn.getAttribute('data-url');
+  if (!url) return;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'DisableArcGISProUpdates.reg';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+  } catch (e) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+});
 </script>
 
 </body>
