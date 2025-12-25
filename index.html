@@ -630,13 +630,32 @@ function normalizeProVersion(digits) {
   return '';
 }
 
-function inferVersion(filename, folderPath) {
+function parseYearSubVersion(filename, folderPath) {
+  const fn = String(filename || '');
+  const fp = String(folderPath || '');
+  let m = fn.match(/_(20\d{2})_(\d{1,2})_/);
+  if (m) return { year: Number(m[1]), sub: Number(m[2]), versionStr: `${m[1]}.${m[2]}` };
+  m = fn.match(/_(20\d{2})_/);
+  if (m) return { year: Number(m[1]), sub: null, versionStr: `${m[1]}` };
+  m = fp.match(/_(20\d{2})_(\d{1,2})_/i);
+  if (m) return { year: Number(m[1]), sub: Number(m[2]), versionStr: `${m[1]}.${m[2]}` };
+  m = fp.match(/_(20\d{2})_/i);
+  if (m) return { year: Number(m[1]), sub: null, versionStr: `${m[1]}` };
+  return null;
+}
+
+function inferVersion(filename, folderPath, component) {
   const fp = (folderPath || '');
   const fn = (filename || '');
   let m = fp.match(/ArcGISPro(\d{2,4})\b/i) || fn.match(/ArcGISPro_(\d{2,4})\b/i) || fn.match(/ArcGIS_Pro_(\d{2,4})\b/i);
   if (m) {
     const v = normalizeProVersion(m[1]);
     if (v) return v;
+  }
+
+  if (component === 'License Manager' || component === 'Monitor') {
+    const ym = parseYearSubVersion(fn, fp);
+    if (ym) return ym.versionStr;
   }
 
   m = fp.match(/\b11\.(\d)\b/);
@@ -656,8 +675,11 @@ function inferVersion(filename, folderPath) {
   return 'Unknown';
 }
 
-function inferComponent(filename) {
+function inferComponent(filename, folderPath) {
   const n = (filename || '').toLowerCase();
+  const fp = (folderPath || '').toLowerCase();
+  if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager')) return 'License Manager';
+  if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('monitor')) return 'Monitor';
   if (n.startsWith('portal')) return 'Portal';
   if (n.includes('datastore')) return 'Data Store';
   if (n.includes('notebook')) return 'Notebook';
@@ -698,8 +720,8 @@ async function loadSoftwareFromSheet() {
     if (!filename.startsWith('ArcGIS') && !filename.startsWith('Portal')) continue;
 
     const folderPath = idx.folder >= 0 ? (r[idx.folder] || '') : '';
-    const version = inferVersion(filename, folderPath) || 'Unknown';
-    const component = inferComponent(filename);
+    const component = inferComponent(filename, folderPath);
+    const version = inferVersion(filename, folderPath, component) || 'Unknown';
 
     out.push({
       version,
@@ -719,11 +741,44 @@ async function loadSoftwareFromSheet() {
   swStatus.textContent = `Loaded ${out.length} items.`;
 }
 
+function versionSortKey(v) {
+  if (v === 'Unknown') return { type: 9 };
+  const yearMatch = v.match(/^(20\d{2})(?:\.(\d{1,2}))?$/);
+  if (yearMatch) {
+    return {
+      type: 1,
+      year: Number(yearMatch[1]),
+      sub: yearMatch[2] === undefined ? -1 : Number(yearMatch[2])
+    };
+  }
+  const parts = v.split('.').map(p => Number(p));
+  if (parts.every(p => Number.isFinite(p))) return { type: 2, parts };
+  return { type: 5, text: v };
+}
+
+function compareVersions(a, b) {
+  const ka = versionSortKey(a);
+  const kb = versionSortKey(b);
+  if (ka.type !== kb.type) return ka.type - kb.type;
+  if (ka.type === 1) return (ka.year - kb.year) || (ka.sub - kb.sub);
+  if (ka.type === 2) {
+    const len = Math.max(ka.parts.length, kb.parts.length);
+    for (let i = 0; i < len; i++) {
+      const da = ka.parts[i] ?? 0;
+      const db = kb.parts[i] ?? 0;
+      if (da !== db) return da - db;
+    }
+    return 0;
+  }
+  if (ka.type === 5) return ka.text.localeCompare(kb.text);
+  return 0;
+}
+
 function buildSoftwareFilters() {
   const sel = document.getElementById('swVersionSel');
   const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)));
   const known = versions.filter(v => v !== 'Unknown')
-    .sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+    .sort(compareVersions);
   const ordered = known.concat(versions.includes('Unknown') ? ['Unknown'] : []);
   sel.innerHTML = '<option value="">All versions</option>';
   for (const v of ordered) {
