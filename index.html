@@ -107,6 +107,19 @@
   }
   .btn:hover{background:linear-gradient(135deg, var(--btn-hover-1), var(--btn-hover-2))}
   .btn.toggle{border-color:rgba(20,107,95,.55)}
+  .theme-toggle{margin-left:auto;min-width:44px;padding:10px}
+  .theme-toggle .icon{display:inline-block;font-size:16px;line-height:1}
+  .theme-toggle .icon-sun{display:none}
+  [data-theme="dark"] .theme-toggle .icon-sun{display:inline-block}
+  [data-theme="dark"] .theme-toggle .icon-moon{display:none}
+  .menu-active .bar{display:none}
+  .patch-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;flex:1 1 auto}
+  .view-software .patch-filters,.view-menu .patch-filters{display:none}
+  .menu-wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .menu-card{border:1px solid var(--border);border-radius:18px;background:var(--panel);box-shadow:var(--shadow);padding:18px}
+  .menu-title{font-size:16px;font-weight:800;margin:0 0 6px}
+  .menu-sub{font-size:12px;color:var(--muted);margin:0 0 14px}
+  .menu-actions{display:flex;flex-wrap:wrap;gap:10px}
   main{padding:18px 18px 30px;max-width:1200px;margin:0 auto}
   .guide{
     display:grid;
@@ -219,6 +232,7 @@
   @media (max-width:900px){
     .bar input{min-width:220px;flex-basis:220px}
     .guide{grid-template-columns:1fr}
+    .menu-wrap{grid-template-columns:1fr}
   }
   @media (max-width:600px){
     h1{font-size:18px}
@@ -229,15 +243,52 @@
 <body>
 <header>
   <div class="hero">
-    <div class="kicker">ArcGIS Enterprise</div>
-    <h1>ArcGIS Enterprise Patch List</h1>
+    <div class="kicker">ArcGIS Enterprise Download</div>
+    <h1>ArcGIS Enterprise Download Assist</h1>
     <div class="sub">Select version from dropdown. Click Open/Download buttons for each patch file link.</div>
   </div>
 
   <div class="bar">
+    <button class="btn" id="menuBtn" type="button">Menu</button>
     <button class="btn toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
     <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
     <button class="btn" id="downloadReg" type="button" data-url="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg">Download Script ปิด Patch ArcGIS Pro</button>
+    <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
+      <span class="icon icon-moon">🌙</span>
+      <span class="icon icon-sun">☀️</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<section id="menuView">
+  <div class="menu-wrap">
+    <div class="menu-card">
+      <h2 class="menu-title">Patch List</h2>
+      <p class="menu-sub">Browse and filter ArcGIS Enterprise patches by version.</p>
+      <div class="menu-actions">
+        <button class="btn toggle" id="menuPatch" type="button">Software Patch</button>
+      </div>
+    </div>
+    <div class="menu-card">
+      <h2 class="menu-title">Download Software</h2>
+      <p class="menu-sub">Find installers, sizes, and direct downloads.</p>
+      <div class="menu-actions">
+        <button class="btn toggle" id="menuSoftware" type="button">Software</button>
+      </div>
+    </div>
+    <div class="menu-card">
+      <h2 class="menu-title">Script Disable ArcGIS Pro update</h2>
+      <p class="menu-sub">Disable ArcGIS Pro update checks at startup.</p>
+      <div class="menu-actions">
+        <button class="btn" id="menuDownload" type="button">Download Script</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="patchView" style="display:none;">
+  <div class="bar" style="margin:0 0 12px;">
     <select id="versionSel" title="Version"></select>
     <input id="q" type="search" placeholder="Search: patch name, ID, summary, URLs ..." />
     <select id="componentSel" title="Component">
@@ -255,13 +306,8 @@
       <option value="N">Security = N</option>
     </select>
     <button class="btn" id="clearBtn">Clear</button>
-    <button class="btn toggle" id="themeBtn" type="button" aria-pressed="false">Dark mode</button>
     <span class="hint" id="status"></span>
   </div>
-</header>
-
-<main>
-<section id="patchView">
 
   <div class="meta">
     <span class="badge" id="verBadge"></span>
@@ -355,7 +401,7 @@
 </main>
 
 <footer>
-  Generated on 2025-12-25 03:12:01 (local time). Data: Excel export based on Esri patches.json.
+  Powered By Khemmathat for Internal USE ONLY!!
 </footer>
 
 <script>
@@ -371,7 +417,9 @@ ordered.push(...versionSheets);
 const themeBtn = document.getElementById("themeBtn");
 function applyTheme(mode) {
   document.documentElement.setAttribute("data-theme", mode);
-  themeBtn.textContent = (mode === "dark") ? "Light mode" : "Dark mode";
+  const label = (mode === "dark") ? "Switch to light mode" : "Switch to dark mode";
+  themeBtn.setAttribute("aria-label", label);
+  themeBtn.setAttribute("title", label);
   themeBtn.setAttribute("aria-pressed", String(mode === "dark"));
   try { localStorage.setItem("theme", mode); } catch (e) {}
 }
@@ -694,32 +742,59 @@ function renderSoftware() {
   `).join('');
 }
 
-// Tabs
+// Tabs + menu
+const menuView = document.getElementById('menuView');
+const menuBtn = document.getElementById('menuBtn');
+const menuPatch = document.getElementById('menuPatch');
+const menuSoftware = document.getElementById('menuSoftware');
+const menuDownload = document.getElementById('menuDownload');
+
 const tabPatch = document.getElementById('tabPatch');
 const tabSoftware = document.getElementById('tabSoftware');
 const patchView = document.getElementById('patchView');
 const softwareView = document.getElementById('softwareView');
 
-function setTab(which) {
-  const isPatch = which === 'patch';
+function setView(view, updateHash = true) {
+  const isMenu = view === 'menu';
+  const isPatch = view === 'patch';
+  const isSoftware = view === 'software';
+
+  menuView.style.display = isMenu ? '' : 'none';
   patchView.style.display = isPatch ? '' : 'none';
-  softwareView.style.display = isPatch ? 'none' : '';
+  softwareView.style.display = isSoftware ? '' : 'none';
+
+  document.body.classList.toggle('view-menu', isMenu);
+  document.body.classList.toggle('view-patch', isPatch);
+  document.body.classList.toggle('view-software', isSoftware);
   tabPatch.classList.toggle('toggle', isPatch);
-  tabSoftware.classList.toggle('toggle', !isPatch);
+  tabSoftware.classList.toggle('toggle', isSoftware);
   tabPatch.setAttribute('aria-pressed', String(isPatch));
-  tabSoftware.setAttribute('aria-pressed', String(!isPatch));
+  tabSoftware.setAttribute('aria-pressed', String(isSoftware));
+
+  document.body.classList.toggle('menu-active', isMenu);
+  if (updateHash) {
+    const hash = isMenu ? '#menu' : (isPatch ? '#patch' : '#software');
+    history.replaceState(null, '', hash);
+  }
+  window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-tabPatch?.addEventListener('click', () => setTab('patch'));
-tabSoftware?.addEventListener('click', async () => {
-  setTab('software');
+async function showSoftware() {
+  setView('software');
   if (!SOFTWARE_ROWS.length) {
     try { await loadSoftwareFromSheet(); }
     catch (e) {
       document.getElementById('swStatus').textContent = 'Error: ' + (e?.message || e);
     }
   }
-});
+}
+
+menuBtn?.addEventListener('click', () => setView('menu'));
+menuPatch?.addEventListener('click', () => setView('patch'));
+menuSoftware?.addEventListener('click', showSoftware);
+menuDownload?.addEventListener('click', () => downloadBtn?.click());
+tabPatch?.addEventListener('click', () => setView('patch'));
+tabSoftware?.addEventListener('click', showSoftware);
 
 document.getElementById('swVersionSel')?.addEventListener('change', renderSoftware);
 document.getElementById('swCompSel')?.addEventListener('change', renderSoftware);
@@ -727,6 +802,15 @@ document.getElementById('swQ')?.addEventListener('input', renderSoftware);
 document.getElementById('swReload')?.addEventListener('click', loadSoftwareFromSheet);
 
 const downloadBtn = document.getElementById('downloadReg');
+const hash = (location.hash || '').toLowerCase();
+if (hash === '#software') {
+  showSoftware();
+} else if (hash === '#patch') {
+  setView('patch', false);
+} else {
+  setView('menu', false);
+}
+
 downloadBtn?.addEventListener('click', async () => {
   const url = downloadBtn.getAttribute('data-url');
   if (!url) return;
