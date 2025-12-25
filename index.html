@@ -622,19 +622,38 @@ function parseCsv(text) {
   return rows.map(r => r.map(c => (c ?? '').trim()));
 }
 
-function inferVersionFromPath(folderPath) {
+function normalizeProVersion(digits) {
+  const s = String(digits || '');
+  if (s.length === 2) return `${s[0]}.${s[1]}`;
+  if (s.length === 3) return `${s[0]}.${s[1]}.${s[2]}`;
+  if (s.length === 4) return `${s[0]}.${s[1]}.${s.slice(2)}`;
+  return '';
+}
+
+function inferVersion(filename, folderPath) {
   const fp = (folderPath || '');
-  let m = fp.match(/ArcGIS(\d{3,4})\b/i);
+  const fn = (filename || '');
+  let m = fp.match(/ArcGISPro(\d{2,4})\b/i) || fn.match(/ArcGISPro_(\d{2,4})\b/i) || fn.match(/ArcGIS_Pro_(\d{2,4})\b/i);
+  if (m) {
+    const v = normalizeProVersion(m[1]);
+    if (v) return v;
+  }
+
+  m = fp.match(/\b11\.(\d)\b/);
+  if (m) return `11.${m[1]}`;
+  m = fp.match(/ArcGIS(1\d{2,4})\b/i);
   if (m) {
     const s = m[1];
     if (s.length === 3 && s.startsWith('11')) return `11.${s[2]}`;
-    if (s.length === 4) return `10.${s[2]}.${s[3]}`;
+    if (s.length === 4 && s.startsWith('10')) return `10.${s[2]}.${s[3]}`;
+    if (s.length === 5 && s.startsWith('10')) return `10.${s[2]}.${s.slice(3)}`;
   }
+
   m = fp.match(/\b(\d{1,2}\.\d{1,2}\.\d{1,2})\b/);
   if (m) return m[1];
   m = fp.match(/\b(\d{1,2}\.\d{1,2})\b/);
   if (m) return m[1];
-  return '';
+  return 'Unknown';
 }
 
 function inferComponent(filename) {
@@ -679,7 +698,7 @@ async function loadSoftwareFromSheet() {
     if (!filename.startsWith('ArcGIS') && !filename.startsWith('Portal')) continue;
 
     const folderPath = idx.folder >= 0 ? (r[idx.folder] || '') : '';
-    const version = inferVersionFromPath(folderPath);
+    const version = inferVersion(filename, folderPath) || 'Unknown';
     const component = inferComponent(filename);
 
     out.push({
@@ -702,10 +721,12 @@ async function loadSoftwareFromSheet() {
 
 function buildSoftwareFilters() {
   const sel = document.getElementById('swVersionSel');
-  const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)))
+  const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)));
+  const known = versions.filter(v => v !== 'Unknown')
     .sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+  const ordered = known.concat(versions.includes('Unknown') ? ['Unknown'] : []);
   sel.innerHTML = '<option value="">All versions</option>';
-  for (const v of versions) {
+  for (const v of ordered) {
     const o = document.createElement('option');
     o.value = v; o.textContent = v;
     sel.appendChild(o);
@@ -728,7 +749,7 @@ function renderSoftware() {
   const tb = document.getElementById('swTbody');
   tb.innerHTML = rows.map(r => `
     <tr>
-      <td class="nowrap">${escapeHtml(r.version || '')}</td>
+      <td class="nowrap">${escapeHtml(r.version === 'Unknown' ? '—' : (r.version || '—'))}</td>
       <td class="nowrap">${escapeHtml(r.component || '')}</td>
       <td class="wrap">${escapeHtml(r.filename || '')}</td>
       <td class="nowrap">${escapeHtml(r.sizeGB || '')}</td>
