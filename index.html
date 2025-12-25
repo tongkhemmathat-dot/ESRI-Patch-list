@@ -679,7 +679,7 @@ function inferComponent(filename, folderPath) {
   const n = (filename || '').toLowerCase();
   const fp = (folderPath || '').toLowerCase();
   if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager')) return 'License Manager';
-  if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('monitor')) return 'Monitor';
+  if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('monitor')) return 'ArcGIS Monitor';
   if (n.startsWith('portal')) return 'Portal';
   if (n.includes('datastore')) return 'Data Store';
   if (n.includes('notebook')) return 'Notebook';
@@ -776,6 +776,8 @@ function compareVersions(a, b) {
 
 function buildSoftwareFilters() {
   const sel = document.getElementById('swVersionSel');
+  const compSel = document.getElementById('swCompSel');
+  const prevComp = compSel ? compSel.value : '';
   const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)));
   const known = versions.filter(v => v !== 'Unknown')
     .sort(compareVersions);
@@ -785,6 +787,32 @@ function buildSoftwareFilters() {
     const o = document.createElement('option');
     o.value = v; o.textContent = v;
     sel.appendChild(o);
+  }
+
+  if (compSel) {
+    const comps = Array.from(new Set(SOFTWARE_ROWS.map(r => r.component).filter(Boolean)));
+    const preferred = [
+      'ArcGIS Server',
+      'Portal',
+      'Data Store',
+      'Notebook',
+      'Web Adaptor',
+      'ArcGIS Monitor',
+      'License Manager',
+      'Pro',
+      'Desktop',
+      'Enterprise',
+      'Other'
+    ];
+    const remaining = comps.filter(c => !preferred.includes(c)).sort((a,b) => a.localeCompare(b));
+    const orderedComps = preferred.filter(c => comps.includes(c)).concat(remaining);
+    compSel.innerHTML = '<option value="">All components</option>';
+    for (const c of orderedComps) {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      compSel.appendChild(o);
+    }
+    compSel.value = orderedComps.includes(prevComp) ? prevComp : '';
   }
 }
 
