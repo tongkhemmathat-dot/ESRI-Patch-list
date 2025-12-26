@@ -401,7 +401,7 @@
 </main>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.1)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.2)
 </footer>
 
 <script>
@@ -630,18 +630,19 @@ function normalizeProVersion(digits) {
   return '';
 }
 
-function parseYearSubVersion(filename, folderPath) {
-  const fn = String(filename || '');
-  const fp = String(folderPath || '');
-  let m = fn.match(/_(20\d{2})_(\d{1,2})_/);
+function parseYearSubVersion_(s) {
+  const text = String(s || '');
+  let m = text.match(/(?:^|[^0-9])(20\d{2})[_\-. ](\d{1,2})(?:[_\-. ]|[^0-9]|$)/);
   if (m) return { year: Number(m[1]), sub: Number(m[2]), versionStr: `${m[1]}.${m[2]}` };
-  m = fn.match(/_(20\d{2})_/);
-  if (m) return { year: Number(m[1]), sub: null, versionStr: `${m[1]}` };
-  m = fp.match(/_(20\d{2})_(\d{1,2})_/i);
-  if (m) return { year: Number(m[1]), sub: Number(m[2]), versionStr: `${m[1]}.${m[2]}` };
-  m = fp.match(/_(20\d{2})_/i);
+  m = text.match(/(?:^|[^0-9])(20\d{2})(?:[^0-9]|$)/);
   if (m) return { year: Number(m[1]), sub: null, versionStr: `${m[1]}` };
   return null;
+}
+
+function parseYearSubVersion(filename, folderPath) {
+  const fn = parseYearSubVersion_(filename);
+  if (fn) return fn;
+  return parseYearSubVersion_(folderPath);
 }
 
 function inferVersion(filename, folderPath, component) {
@@ -653,7 +654,7 @@ function inferVersion(filename, folderPath, component) {
     if (v) return v;
   }
 
-  if (component === 'License Manager' || component === 'Monitor') {
+  if (component === 'License Manager' || component === 'ArcGIS Monitor') {
     const ym = parseYearSubVersion(fn, fp);
     if (ym) return ym.versionStr;
   }
@@ -678,8 +679,8 @@ function inferVersion(filename, folderPath, component) {
 function inferComponent(filename, folderPath) {
   const n = (filename || '').toLowerCase();
   const fp = (folderPath || '').toLowerCase();
-  if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager')) return 'License Manager';
-  if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('monitor')) return 'ArcGIS Monitor';
+  if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager') || fp.includes('licensemanager')) return 'License Manager';
+  if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('arcgis_monitor') || fp.includes('arcgis monitor')) return 'ArcGIS Monitor';
   if (n.startsWith('portal')) return 'Portal';
   if (n.includes('datastore')) return 'Data Store';
   if (n.includes('notebook')) return 'Notebook';
@@ -828,7 +829,7 @@ function renderSoftware() {
   const tb = document.getElementById('swTbody');
   tb.innerHTML = rows.map(r => `
     <tr>
-      <td class="nowrap">${escapeHtml(r.version === 'Unknown' ? '—' : (r.version || '—'))}</td>
+      <td class="nowrap">${escapeHtml(r.version === 'Unknown' ? '—' : (r.version || ''))}</td>
       <td class="nowrap">${escapeHtml(r.component || '')}</td>
       <td class="wrap">${escapeHtml(r.filename || '')}</td>
       <td class="nowrap">${escapeHtml(r.sizeGB || '')}</td>
