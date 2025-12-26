@@ -401,7 +401,7 @@
 </main>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.2)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.3)
 </footer>
 
 <script>
@@ -633,16 +633,22 @@ function normalizeProVersion(digits) {
 function parseYearSubVersion_(s) {
   const text = String(s || '');
   let m = text.match(/(?:^|[^0-9])(20\d{2})[_\-. ](\d{1,2})(?:[_\-. ]|[^0-9]|$)/);
-  if (m) return { year: Number(m[1]), sub: Number(m[2]), versionStr: `${m[1]}.${m[2]}` };
+  if (m) return `${m[1]}.${m[2]}`;
   m = text.match(/(?:^|[^0-9])(20\d{2})(?:[^0-9]|$)/);
-  if (m) return { year: Number(m[1]), sub: null, versionStr: `${m[1]}` };
+  if (m) return `${m[1]}`;
   return null;
 }
 
-function parseYearSubVersion(filename, folderPath) {
-  const fn = parseYearSubVersion_(filename);
-  if (fn) return fn;
-  return parseYearSubVersion_(folderPath);
+function parseEnterprise12x_(filename, folderPath) {
+  const fn = String(filename || '');
+  const fp = String(folderPath || '');
+  let m = fn.match(/(?:^|[^0-9])(12\d)(?:[_\-. ]|[^0-9]|$)/);
+  if (!m) m = fp.match(/(?:^|[^0-9])(12\d)(?:[_\-. ]|[^0-9]|$)/);
+  if (!m) return null;
+  const digits = m[1];
+  const num = Number(digits);
+  if (num < 120 || num > 129) return null;
+  return `12.${digits[2]}`;
 }
 
 function inferVersion(filename, folderPath, component) {
@@ -654,9 +660,15 @@ function inferVersion(filename, folderPath, component) {
     if (v) return v;
   }
 
-  if (component === 'License Manager' || component === 'ArcGIS Monitor') {
-    const ym = parseYearSubVersion(fn, fp);
-    if (ym) return ym.versionStr;
+  if (component === 'License Manager' || component === 'ArcGIS Monitor' || component === 'ArcGIS Insights') {
+    const ym = parseYearSubVersion_(fn) || parseYearSubVersion_(fp);
+    if (ym) return ym;
+  }
+
+  const enterpriseComponents = new Set(['ArcGIS Server', 'Portal', 'Data Store', 'Notebook', 'Web Adaptor']);
+  if (enterpriseComponents.has(component)) {
+    const v12 = parseEnterprise12x_(fn, fp);
+    if (v12) return v12;
   }
 
   m = fp.match(/\b11\.(\d)\b/);
@@ -673,14 +685,21 @@ function inferVersion(filename, folderPath, component) {
   if (m) return m[1];
   m = fp.match(/\b(\d{1,2}\.\d{1,2})\b/);
   if (m) return m[1];
-  return '';
+  return 'Unknown';
 }
+
+// Temporary checks (uncomment to verify)
+// console.assert(inferVersion("ArcGIS_Server_Windows_120_111111.exe", "", "ArcGIS Server") === "12.0", "12.0 infer failed");
+// console.assert(inferVersion("ArcGIS_Server_Windows_121_111111.exe", "", "ArcGIS Server") === "12.1", "12.1 infer failed");
+// console.assert(inferVersion("ArcGIS_Insights_Windows_2023_1_185917.exe", "", "ArcGIS Insights") === "2023.1", "Insights year infer failed");
 
 function inferComponent(filename, folderPath) {
   const n = (filename || '').toLowerCase();
   const fp = (folderPath || '').toLowerCase();
-  if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager') || fp.includes('licensemanager')) return 'License Manager';
+  if (n.includes('arcgis_insights') || n.includes('insights')) return 'ArcGIS Insights';
   if (n.includes('arcgis_monitor') || n.startsWith('arcgis_monitor') || fp.includes('arcgis_monitor') || fp.includes('arcgis monitor')) return 'ArcGIS Monitor';
+  if (n.includes('license_manager') || n.includes('licensemanager') || fp.includes('license manager') || fp.includes('license_manager') || fp.includes('licensemanager')) return 'License Manager';
+  if (n.includes('arcgis_server')) return 'ArcGIS Server';
   if (n.startsWith('portal')) return 'Portal';
   if (n.includes('datastore')) return 'Data Store';
   if (n.includes('notebook')) return 'Notebook';
