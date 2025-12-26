@@ -672,7 +672,7 @@ function inferVersion(filename, folderPath, component) {
   if (m) return m[1];
   m = fp.match(/\b(\d{1,2}\.\d{1,2})\b/);
   if (m) return m[1];
-  return 'Unknown';
+  return '';
 }
 
 function inferComponent(filename, folderPath) {
@@ -736,32 +736,24 @@ async function loadSoftwareFromSheet() {
   }
 
   SOFTWARE_ROWS = out;
-  buildSoftwareFilters();
+  buildVersionDropdown();
+  buildSoftwareComponentDropdown();
   renderSoftware();
   swStatus.textContent = `Loaded ${out.length} items.`;
 }
 
 function versionSortKey(v) {
   if (v === 'Unknown') return { type: 9 };
-  const yearMatch = v.match(/^(20\d{2})(?:\.(\d{1,2}))?$/);
-  if (yearMatch) {
-    return {
-      type: 1,
-      year: Number(yearMatch[1]),
-      sub: yearMatch[2] === undefined ? -1 : Number(yearMatch[2])
-    };
-  }
-  const parts = v.split('.').map(p => Number(p));
-  if (parts.every(p => Number.isFinite(p))) return { type: 2, parts };
-  return { type: 5, text: v };
+  const parts = String(v).split('.').map(p => Number(p));
+  if (parts.every(p => Number.isFinite(p))) return { type: 1, parts };
+  return { type: 5, text: String(v) };
 }
 
 function compareVersions(a, b) {
   const ka = versionSortKey(a);
   const kb = versionSortKey(b);
   if (ka.type !== kb.type) return ka.type - kb.type;
-  if (ka.type === 1) return (ka.year - kb.year) || (ka.sub - kb.sub);
-  if (ka.type === 2) {
+  if (ka.type === 1) {
     const len = Math.max(ka.parts.length, kb.parts.length);
     for (let i = 0; i < len; i++) {
       const da = ka.parts[i] ?? 0;
@@ -774,10 +766,10 @@ function compareVersions(a, b) {
   return 0;
 }
 
-function buildSoftwareFilters() {
+function buildVersionDropdown() {
   const sel = document.getElementById('swVersionSel');
-  const compSel = document.getElementById('swCompSel');
-  const prevComp = compSel ? compSel.value : '';
+  if (!sel) return;
+  const prev = sel.value;
   const versions = Array.from(new Set(SOFTWARE_ROWS.map(x => x.version).filter(Boolean)));
   const known = versions.filter(v => v !== 'Unknown')
     .sort(compareVersions);
@@ -788,32 +780,36 @@ function buildSoftwareFilters() {
     o.value = v; o.textContent = v;
     sel.appendChild(o);
   }
+  sel.value = ordered.includes(prev) ? prev : '';
+}
 
-  if (compSel) {
-    const comps = Array.from(new Set(SOFTWARE_ROWS.map(r => r.component).filter(Boolean)));
-    const preferred = [
-      'ArcGIS Server',
-      'Portal',
-      'Data Store',
-      'Notebook',
-      'Web Adaptor',
-      'ArcGIS Monitor',
-      'License Manager',
-      'Pro',
-      'Desktop',
-      'Enterprise',
-      'Other'
-    ];
-    const remaining = comps.filter(c => !preferred.includes(c)).sort((a,b) => a.localeCompare(b));
-    const orderedComps = preferred.filter(c => comps.includes(c)).concat(remaining);
-    compSel.innerHTML = '<option value="">All components</option>';
-    for (const c of orderedComps) {
-      const o = document.createElement('option');
-      o.value = c; o.textContent = c;
-      compSel.appendChild(o);
-    }
-    compSel.value = orderedComps.includes(prevComp) ? prevComp : '';
+function buildSoftwareComponentDropdown() {
+  const compSel = document.getElementById('swCompSel');
+  if (!compSel) return;
+  const prevComp = compSel.value;
+  const comps = Array.from(new Set(SOFTWARE_ROWS.map(r => r.component).filter(Boolean)));
+  const preferred = [
+    'ArcGIS Server',
+    'Portal',
+    'Data Store',
+    'Notebook',
+    'Web Adaptor',
+    'ArcGIS Monitor',
+    'License Manager',
+    'Pro',
+    'Desktop',
+    'Enterprise',
+    'Other'
+  ];
+  const remaining = comps.filter(c => !preferred.includes(c)).sort((a,b) => a.localeCompare(b));
+  const orderedComps = preferred.filter(c => comps.includes(c)).concat(remaining);
+  compSel.innerHTML = '<option value="">All components</option>';
+  for (const c of orderedComps) {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    compSel.appendChild(o);
   }
+  compSel.value = orderedComps.includes(prevComp) ? prevComp : '';
 }
 
 function renderSoftware() {
