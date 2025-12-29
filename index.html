@@ -405,7 +405,7 @@
 </main>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.4)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.6)
 </footer>
 
 <script>
@@ -568,8 +568,12 @@ function renderPatchActionsCell(row, colIndex, columns) {
   const rowObj = colIndex.has("__row")
     ? row[colIndex.get("__row")]
     : Object.fromEntries(columns.map((c, i) => [c, row[i]]));
+  const supportUrl = String(rowObj?.["Support Page"] || rowObj?.url || "").trim();
   const directUrl = getDirectPatchDownloadUrl(rowObj);
   let out = '<div class="actions">';
+  if (supportUrl) {
+    out += '<a class="pill open" href="' + escapeHtml(supportUrl) + '" target="_blank" rel="noopener noreferrer">Open support page</a>';
+  }
   if (directUrl) {
     out += '<a class="pill dl" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download>Download patch</a>';
   } else {
