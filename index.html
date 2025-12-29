@@ -405,7 +405,7 @@
 </main>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.6)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.7)
 </footer>
 
 <script>
@@ -539,10 +539,50 @@ function extractFirstHttpUrl(val) {
   return null;
 }
 
+function normalizeVersionToToken(versionStr) {
+  const s = String(versionStr || "").trim();
+  if (!s) return "";
+  return s.replaceAll(".", "");
+}
+
+function pickPatchFileByVersion(patchFilesArray, versionStr) {
+  const token = normalizeVersionToToken(versionStr);
+  if (!token) return null;
+  const files = Array.isArray(patchFilesArray) ? patchFilesArray : [];
+  if (!files.length) return null;
+  const patterns = [
+    new RegExp(`ArcGIS-${token}-`, "i"),
+    new RegExp(`/PFA-${token}-`, "i"),
+    new RegExp(`/S-${token}-`, "i")
+  ];
+  for (const fileUrl of files) {
+    const url = String(fileUrl || "").trim();
+    if (!url) continue;
+    if (!/gisupdates\.esri\.com/i.test(url)) continue;
+    if (patterns.some(re => re.test(url))) return url;
+  }
+  return null;
+}
+
+function getRowVersion(rowObj) {
+  const fromRow = rowObj?.version || rowObj?.Version || "";
+  if (fromRow) return String(fromRow);
+  if (String(activeSheet).startsWith("v")) {
+    return activeSheet.slice(1).replaceAll("_", ".");
+  }
+  return "";
+}
+
 function getDirectPatchDownloadUrl(rowObj) {
   const raw = rowObj?._raw || rowObj || {};
+  const versionStr = getRowVersion(rowObj);
+  const patchFiles = raw?.PatchFiles || raw?.patchFiles || raw?.patchfiles;
+  if (Array.isArray(patchFiles) && patchFiles.length) {
+    const match = pickPatchFileByVersion(patchFiles, versionStr);
+    return match || null;
+  }
   const preferredKeys = [
-    "download_url","download url","download","direct download","download link","file url","file_url","qfe_url","qfe url","patchfiles","url"
+    "download_url","download url","download","direct download","download link","file url","file_url","qfe_url","qfe url","url"
   ];
   let directUrl = null;
   const keyMap = new Map(Object.keys(raw).map(k => [String(k).toLowerCase(), k]));
@@ -552,28 +592,16 @@ function getDirectPatchDownloadUrl(rowObj) {
     directUrl = extractFirstHttpUrl(raw[rawKey]);
     if (directUrl) break;
   }
-
-  if (!directUrl) {
-    const supportUrl = String(rowObj?.["Support Page"] || raw?.url || "").trim();
-    if (supportUrl) {
-      const isFile = /\.(msp|msi|zip|tar\.gz|exe|dmg|pkg)(\?|$)/i.test(supportUrl);
-      const isGisUpdates = /gisupdates\.esri\.com/i.test(supportUrl);
-      if (isFile || isGisUpdates) directUrl = supportUrl;
-    }
-  }
-  return directUrl || null;
+  if (directUrl && /gisupdates\.esri\.com/i.test(directUrl)) return directUrl;
+  return null;
 }
 
 function renderPatchActionsCell(row, colIndex, columns) {
   const rowObj = colIndex.has("__row")
     ? row[colIndex.get("__row")]
     : Object.fromEntries(columns.map((c, i) => [c, row[i]]));
-  const supportUrl = String(rowObj?.["Support Page"] || rowObj?.url || "").trim();
   const directUrl = getDirectPatchDownloadUrl(rowObj);
   let out = '<div class="actions">';
-  if (supportUrl) {
-    out += '<a class="pill open" href="' + escapeHtml(supportUrl) + '" target="_blank" rel="noopener noreferrer">Open support page</a>';
-  }
   if (directUrl) {
     out += '<a class="pill dl" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download>Download patch</a>';
   } else {
@@ -645,10 +673,11 @@ function normalizePatchesJson(raw) {
   }
 
   for (const g of groups) {
-    const version = g?.version ? String(g.version).trim() : "";
-    const sheetKey = version ? `v${version.replaceAll(".", "_")}` : "All_Enterprise";
+    const groupVersion = g?.version ? String(g.version).trim() : "";
     const patches = Array.isArray(g?.patches) ? g.patches : [];
     for (const p of patches) {
+      const rowVersion = groupVersion || String(p?.version || p?.Version || "").trim();
+      const sheetKey = rowVersion ? `v${rowVersion.replaceAll(".", "_")}` : "All_Enterprise";
       const released = normalizeReleaseDate(p?.ReleaseDate || p?.Released || p?.released || "");
       const month = releaseMonthFromDate(released);
       const component = inferPatchComponent(p?.Products || p?.Component || p?.component);
@@ -662,6 +691,7 @@ function normalizePatchesJson(raw) {
         "Security": security,
         "Patch Name": name,
         "Support Page": support,
+        "version": rowVersion,
         _raw: p
       };
       const row = [
