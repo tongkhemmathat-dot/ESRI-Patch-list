@@ -1,0 +1,62 @@
+name: Update Esri patches.json (daily)
+
+on:
+  schedule:
+    - cron: "10 2 * * *"   # 02:10 UTC (~09:10 Thailand)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-esri-patches
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download latest patches.json
+        run: |
+          set -euo pipefail
+          mkdir -p data
+          curl -fsSL "https://downloads.esri.com/patch_notification/patches.json" -o data/patches.new.json
+
+      - name: Compare and replace only if changed
+        run: |
+          set -euo pipefail
+          if [ -f data/patches.json ]; then
+            old=$(sha256sum data/patches.json | awk '{print $1}')
+          else
+            old=""
+          fi
+          new=$(sha256sum data/patches.new.json | awk '{print $1}')
+
+          if [ "$old" = "$new" ]; then
+            echo "No change in patches.json"
+            rm -f data/patches.new.json
+            exit 0
+          fi
+
+          mv data/patches.new.json data/patches.json
+          echo "patches.json updated"
+
+      - name: Commit and push (only if changed)
+        run: |
+          set -euo pipefail
+          if git status --porcelain | grep -q "data/patches.json"; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/patches.json
+            git commit -m "chore: update Esri patches.json"
+            git push
+          else
+            echo "Nothing to commit"
+          fi
