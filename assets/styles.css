@@ -52,6 +52,7 @@
   }
   body{
     margin:0;
+    font-weight:380;
     letter-spacing:.1px;
     background:
       radial-gradient(1200px 600px at 10% -10%, var(--bg-grad-1) 0%, rgba(248,233,211,0) 60%),
@@ -205,6 +206,7 @@
     z-index:6;
     background:var(--head);
   }
+  th{font-weight:580}
   .table-head thead th{
     position:static;
     background:var(--head);
@@ -212,7 +214,7 @@
     text-align:left;
     padding:11px 10px;
     font-size:.85rem;
-    font-weight:600;
+    font-weight:580;
     letter-spacing:.3px;
     color:var(--text-secondary);
     white-space:nowrap;
@@ -237,7 +239,7 @@
   .wrap{white-space:pre-wrap;word-break:break-word}
   .nowrap{white-space:nowrap}
   .actions{display:flex;flex-wrap:wrap;gap:6px}
-  .col-name{font-weight:700;color:var(--fg)}
+  .col-name,td.patch-name{font-weight:480;color:var(--fg)}
   .col-date{font-variant-numeric:tabular-nums}
   .col-month{color:var(--muted)}
   .col-component{font-weight:600}
