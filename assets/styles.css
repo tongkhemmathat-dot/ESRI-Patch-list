@@ -138,7 +138,15 @@
   .patch-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;flex:1 1 auto}
   .view-software .patch-filters,.view-menu .patch-filters{display:none}
   .menu-wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-  .menu-card{border:1px solid var(--border);border-radius:20px;background:var(--panel);box-shadow:var(--shadow);padding:22px}
+  .menu-card{
+    border:1px solid var(--border);
+    border-radius:20px;
+    background:var(--panel);
+    box-shadow:var(--shadow);
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+  }
   .main-menu-card{padding:26px}
   .main-menu-card .menu-title{font-size:20px}
   .main-menu-card .menu-sub{font-size:14.5px;line-height:1.7}
@@ -155,7 +163,12 @@
     color:var(--text-secondary);
     font-weight:500;
   }
-  .menu-actions{display:flex;flex-wrap:wrap;gap:12px}
+  .menu-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:auto;
+  }
   .menu-actions .btn{
     padding:12px 18px;
     min-width:140px;
