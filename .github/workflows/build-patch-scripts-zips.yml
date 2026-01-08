@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Build ZIPs
         run: |
@@ -39,13 +41,18 @@ jobs:
       - name: Commit and push (only if changed)
         run: |
           set -euo pipefail
-          if git diff --quiet -- patch/script/*.zip; then
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage ZIPs first (captures new/untracked files)
+          git add patch/script/*.zip
+
+          # Only commit if staging has changes
+          if git diff --cached --quiet; then
             echo "No ZIP changes"
             exit 0
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add patch/script/*.zip
           git commit -m "Update patch script ZIPs"
           git push
