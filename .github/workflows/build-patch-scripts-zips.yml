@@ -3,7 +3,7 @@ name: Build Patch Script ZIPs
 on:
   push:
     paths:
-      - "DisableArcGISProUpdates.reg"
+      - "script/DisableArcGISProUpdates.reg"
       - "script/Autoinstallpatch.bat"
       - ".github/workflows/build-patch-scripts-zips.yml"
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
 
           # ZIP 1: Disable ArcGIS Pro Updates
           rm -f patch/script/DisableArcGISProUpdates.zip
-          zip -j patch/script/DisableArcGISProUpdates.zip DisableArcGISProUpdates.reg
+          zip -j patch/script/DisableArcGISProUpdates.zip script/DisableArcGISProUpdates.reg
 
           # ZIP 2: Offline Patch Auto Installer
           rm -f patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip
