@@ -803,14 +803,19 @@ document.getElementById('swQ')?.addEventListener('input', renderSoftware);
 document.getElementById('swReload')?.addEventListener('click', loadSoftwareFromSheet);
 
 const downloadBtn = document.getElementById('downloadReg');
-const hash = (location.hash || '').toLowerCase();
-if (hash === '#software') {
-  showSoftware();
-} else if (hash === '#patch') {
-  setView('patch', false);
-} else {
-  setView('menu', false);
+function applyHashView() {
+  const hash = (location.hash || '').toLowerCase();
+  if (hash === '#software') {
+    showSoftware();
+  } else if (hash === '#patch') {
+    setView('patch', false);
+  } else {
+    setView('menu', false);
+  }
 }
+
+applyHashView();
+window.addEventListener('hashchange', applyHashView);
 
 downloadBtn?.addEventListener('click', async () => {
   const url = downloadBtn.getAttribute('data-url');
