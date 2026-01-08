@@ -791,7 +791,9 @@ async function showSoftware() {
 menuBtn?.addEventListener('click', () => setView('menu'));
 menuPatch?.addEventListener('click', () => setView('patch'));
 menuSoftware?.addEventListener('click', showSoftware);
-menuDownload?.addEventListener('click', () => downloadBtn?.click());
+menuDownload?.addEventListener('click', () => {
+  window.location.href = './scripts.html';
+});
 tabPatch?.addEventListener('click', () => setView('patch'));
 tabSoftware?.addEventListener('click', showSoftware);
 

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Scripts &amp; Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+  rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div class="kicker">ESRI Patch List</div>
+    <h1>Scripts &amp; Tools</h1>
+    <div class="sub">Download or open internal helper scripts for ArcGIS maintenance.</div>
+  </div>
+
+  <div class="bar">
+    <a class="btn" href="./index.html">Back to Home</a>
+    <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
+      <span class="icon icon-moon">🌙</span>
+      <span class="icon icon-sun">☀️</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="meta">
+    <span class="badge">Scripts</span>
+    <span class="badge">Local Downloads</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2 class="menu-title">Disable ArcGIS Pro Updates (Registry)</h2>
+      <p class="menu-sub">Turns off update checks at ArcGIS Pro startup.</p>
+      <div class="card-body">File: <span class="kbd">DisableArcGISProUpdates.reg</span></div>
+      <div class="actions">
+        <a class="pill open" href="./view.html?file=DisableArcGISProUpdates.reg" target="_blank" rel="noopener">Open</a>
+        <a class="pill dl" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/DisableArcGISProUpdates.reg" download>Download</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="menu-title">ArcGIS Offline Patch Auto Installer (Batch)</h2>
+      <p class="menu-sub">Runs the offline patch installer with minimal prompts.</p>
+      <div class="card-body">File: <span class="kbd">script/Autoinstallpatch.bat</span></div>
+      <div class="actions">
+        <a class="pill open" href="./view.html?file=script%2FAutoinstallpatch.bat" target="_blank" rel="noopener">Open</a>
+        <a class="pill dl" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/script/Autoinstallpatch.bat" download>Download</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title">Usage Notes</div>
+    <div class="card-body">
+      <ul>
+        <li>Review the file contents before running on production machines.</li>
+        <li>Run batch scripts with administrator rights when required.</li>
+        <li>Keep a backup or restore point before applying registry changes.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered By Khemmathat for Internal USE ONLY!! (v0.10)
+</footer>
+
+<script>
+  (function () {
+    const themeBtn = document.getElementById("themeBtn");
+    if (!themeBtn) return;
+    function applyTheme(mode) {
+      document.documentElement.setAttribute("data-theme", mode);
+      const label = (mode === "dark") ? "Switch to light mode" : "Switch to dark mode";
+      themeBtn.setAttribute("aria-label", label);
+      themeBtn.setAttribute("title", label);
+      themeBtn.setAttribute("aria-pressed", String(mode === "dark"));
+      try { localStorage.setItem("theme", mode); } catch (e) {}
+    }
+    const storedTheme = (() => { try { return localStorage.getItem("theme"); } catch (e) { return null; } })();
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+    themeBtn.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "light";
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+  })();
+</script>
+</body>
+</html>

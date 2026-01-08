@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Script Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+  rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div class="kicker">ESRI Patch List</div>
+    <h1>Script Viewer</h1>
+    <div class="sub" id="fileLabel">Select a script from the list.</div>
+  </div>
+
+  <div class="bar">
+    <a class="btn" id="backBtn" href="./scripts.html">Back to Scripts</a>
+    <a class="btn" id="downloadBtn" href="#" download>Download</a>
+    <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
+      <span class="icon icon-moon">🌙</span>
+      <span class="icon icon-sun">☀️</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-title">Content</div>
+    <div class="card-body">
+      <div class="codebox">
+        <pre><code id="codeBlock">Loading...</code></pre>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered By Khemmathat for Internal USE ONLY!! (v0.10)
+</footer>
+
+<script>
+  (function () {
+    const themeBtn = document.getElementById("themeBtn");
+    if (!themeBtn) return;
+    function applyTheme(mode) {
+      document.documentElement.setAttribute("data-theme", mode);
+      const label = (mode === "dark") ? "Switch to light mode" : "Switch to dark mode";
+      themeBtn.setAttribute("aria-label", label);
+      themeBtn.setAttribute("title", label);
+      themeBtn.setAttribute("aria-pressed", String(mode === "dark"));
+      try { localStorage.setItem("theme", mode); } catch (e) {}
+    }
+    const storedTheme = (() => { try { return localStorage.getItem("theme"); } catch (e) { return null; } })();
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+    themeBtn.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "light";
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+  })();
+
+  (function () {
+    const allowList = new Set([
+      "DisableArcGISProUpdates.reg",
+      "script/Autoinstallpatch.bat"
+    ]);
+    const params = new URLSearchParams(window.location.search);
+    const file = params.get("file") || "";
+    const fileLabel = document.getElementById("fileLabel");
+    const codeBlock = document.getElementById("codeBlock");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    if (!allowList.has(file)) {
+      fileLabel.textContent = "Invalid or unauthorized file.";
+      codeBlock.textContent = "This file is not allowed.";
+      downloadBtn.setAttribute("href", "./scripts.html");
+      downloadBtn.setAttribute("download", "");
+      return;
+    }
+
+    fileLabel.textContent = "File: " + file;
+    downloadBtn.setAttribute("href", "./" + file);
+    downloadBtn.setAttribute("download", "");
+
+    fetch("./" + file + "?t=" + Date.now(), { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.text();
+      })
+      .then((text) => {
+        codeBlock.textContent = text;
+      })
+      .catch((err) => {
+        codeBlock.textContent = "Failed to load file: " + (err?.message || err);
+      });
+  })();
+</script>
+</body>
+</html>

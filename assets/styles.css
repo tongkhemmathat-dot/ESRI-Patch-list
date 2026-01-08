@@ -145,6 +145,11 @@
     gap:12px;
     margin:6px 0 16px;
   }
+  .grid{
+    display:grid;
+    gap:16px;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  }
   .card{
     border:1px solid var(--border);
     border-radius:16px;
@@ -264,6 +269,20 @@
   .pill.dl{border-color:rgba(224,122,31,.35);background:var(--pill-dl)}
   .pill:hover{background:var(--pill-hover)}
   .pill.disabled{opacity:.5;pointer-events:none;cursor:not-allowed}
+  .codebox{
+    background:#0b1220;
+    border:1px solid var(--border-subtle);
+    border-radius:14px;
+    padding:14px;
+    overflow:auto;
+  }
+  pre{margin:0;white-space:pre}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+    font-size:.9rem;
+    line-height:1.5;
+    color:var(--text-primary);
+  }
   .secY{color:var(--danger);font-weight:800}
   .secN{color:var(--muted)}
   footer{padding:14px 18px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;text-align:center}
