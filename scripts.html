@@ -36,6 +36,7 @@
     <span class="badge">Scripts</span>
     <span class="badge">Local Downloads</span>
   </div>
+  <p class="menu-sub download-note">ZIP download will appear automatically when available.</p>
 
   <div class="grid">
     <div class="card script-card">
@@ -45,8 +46,15 @@
       <div class="card-body">File: <span class="kbd">DisableArcGISProUpdates.reg</span></div>
       <div class="actions script-actions">
         <a class="pill open" href="./view.html?file=DisableArcGISProUpdates.reg" target="_blank" rel="noopener">Open</a>
-        <a class="pill dl js-download" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/DisableArcGISProUpdates.zip?download=1" data-url="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/DisableArcGISProUpdates.zip" data-filename="DisableArcGISProUpdates.zip" download>Download ZIP</a>
-        <span class="zip-note">ZIP (recommended)</span>
+        <a class="pill dl js-download"
+           href="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg"
+           data-zip-check="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/patch/script/DisableArcGISProUpdates.zip"
+           data-zip-download="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/DisableArcGISProUpdates.zip?download=1"
+           data-zip-name="DisableArcGISProUpdates.zip"
+           data-raw-download="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg"
+           data-raw-name="DisableArcGISProUpdates.reg"
+           download>Download Script</a>
+        <span class="zip-note" hidden>Recommended</span>
       </div>
     </div>
 
@@ -57,8 +65,15 @@
       <div class="card-body">File: <span class="kbd">script/Autoinstallpatch.bat</span></div>
       <div class="actions script-actions">
         <a class="pill open" href="./view.html?file=script%2FAutoinstallpatch.bat" target="_blank" rel="noopener">Open</a>
-        <a class="pill dl js-download" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip?download=1" data-url="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip" data-filename="ArcGIS_OfflinePatch_AutoInstaller.zip" download>Download ZIP</a>
-        <span class="zip-note">ZIP (recommended)</span>
+        <a class="pill dl js-download"
+           href="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/script/Autoinstallpatch.bat"
+           data-zip-check="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip"
+           data-zip-download="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip?download=1"
+           data-zip-name="ArcGIS_OfflinePatch_AutoInstaller.zip"
+           data-raw-download="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/script/Autoinstallpatch.bat"
+           data-raw-name="Autoinstallpatch.bat"
+           download>Download Script</a>
+        <span class="zip-note" hidden>Recommended</span>
       </div>
     </div>
   </div>
@@ -112,8 +127,40 @@
       a.click();
       a.remove();
     }
+    async function applyDownloadState(btn) {
+      const zipCheck = btn.getAttribute("data-zip-check");
+      const zipDownload = btn.getAttribute("data-zip-download");
+      const zipName = btn.getAttribute("data-zip-name");
+      const rawDownload = btn.getAttribute("data-raw-download");
+      const rawName = btn.getAttribute("data-raw-name");
+      const note = btn.parentElement?.querySelector(".zip-note");
+      let useZip = false;
+      if (zipCheck) {
+        try {
+          const res = await fetch(zipCheck, { method: "HEAD", cache: "no-store" });
+          useZip = res.ok;
+        } catch (e) {
+          useZip = false;
+        }
+      }
+      if (useZip && zipDownload) {
+        btn.textContent = "Download ZIP";
+        btn.setAttribute("href", zipDownload);
+        btn.setAttribute("data-url", zipDownload);
+        btn.setAttribute("data-filename", zipName || "");
+        if (note) note.hidden = false;
+      } else if (rawDownload) {
+        btn.textContent = "Download Script";
+        btn.setAttribute("href", rawDownload);
+        btn.setAttribute("data-url", rawDownload);
+        btn.setAttribute("data-filename", rawName || "");
+        if (note) note.hidden = true;
+      }
+    }
+
     const buttons = document.querySelectorAll(".js-download");
     buttons.forEach((btn) => {
+      applyDownloadState(btn);
       btn.addEventListener("click", (e) => {
         const url = btn.getAttribute("data-url");
         const filename = btn.getAttribute("data-filename");
