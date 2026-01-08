@@ -24,7 +24,7 @@
     <button class="btn" id="menuBtn" type="button">Menu</button>
     <button class="btn toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
     <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
-    <button class="btn" id="downloadReg" type="button" data-url="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg">Download Script ปิด Patch ArcGIS Pro</button>
+    <a class="btn" href="./scripts.html">Open Scripts</a>
     <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
       <span class="icon icon-moon">🌙</span>
       <span class="icon icon-sun">☀️</span>
@@ -35,23 +35,23 @@
 <main>
 <section id="menuView">
   <div class="menu-wrap">
-    <div class="menu-card">
-      <h2 class="menu-title">Patch List</h2>
-      <p class="menu-sub">Browse and filter ArcGIS Enterprise patches by version.</p>
+    <div class="menu-card main-menu-card">
+      <h2 class="menu-title">รายการแพตช์</h2>
+      <p class="menu-sub">ค้นหาและกรองแพตช์ ArcGIS Enterprise ตามเวอร์ชันที่ต้องการ.</p>
       <div class="menu-actions">
         <button class="btn toggle" id="menuPatch" type="button">Software Patch</button>
       </div>
     </div>
-    <div class="menu-card">
-      <h2 class="menu-title">Download Software</h2>
-      <p class="menu-sub">Find installers, sizes, and direct downloads.</p>
+    <div class="menu-card main-menu-card">
+      <h2 class="menu-title">ดาวน์โหลดซอฟต์แวร์</h2>
+      <p class="menu-sub">ดูไฟล์ติดตั้ง ขนาด และลิงก์ดาวน์โหลดแบบตรง.</p>
       <div class="menu-actions">
         <button class="btn toggle" id="menuSoftware" type="button">Software</button>
       </div>
     </div>
-    <div class="menu-card">
-      <h2 class="menu-title">Script Disable ArcGIS Pro update</h2>
-      <p class="menu-sub">Disable ArcGIS Pro update checks at startup.</p>
+    <div class="menu-card main-menu-card">
+      <h2 class="menu-title">Scripts &amp; Tools</h2>
+      <p class="menu-sub">สคริปต์และเครื่องมือสำหรับงานแพตช์และการปิดการตรวจอัปเดต.</p>
       <div class="menu-actions">
         <a class="btn" id="menuDownload" href="./scripts.html">Open Scripts</a>
       </div>

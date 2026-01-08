@@ -20,7 +20,10 @@
   </div>
 
   <div class="bar">
-    <a class="btn" href="./index.html">Back to Home</a>
+    <a class="btn" href="./index.html#menu">Menu</a>
+    <a class="btn" href="./index.html#patch">Patches</a>
+    <a class="btn" href="./index.html#software">Software</a>
+    <a class="btn toggle" href="./scripts.html" aria-pressed="true">Scripts &amp; Tools</a>
     <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
       <span class="icon icon-moon">🌙</span>
       <span class="icon icon-sun">☀️</span>
@@ -41,8 +44,9 @@
       <p class="menu-sub script-usage">ดับเบิลคลิกไฟล์ .reg แล้วกด Yes เพื่อเพิ่มค่ารีจิสทรี จากนั้นเปิด ArcGIS Pro ใหม่เพื่อปิดการตรวจอัปเดต.</p>
       <div class="card-body">File: <span class="kbd">DisableArcGISProUpdates.reg</span></div>
       <div class="actions script-actions">
-        <a class="pill open" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/DisableArcGISProUpdates.reg" download>Open</a>
-        <a class="pill dl" href="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/DisableArcGISProUpdates.reg" download>Download</a>
+        <a class="pill open" href="./view.html?file=DisableArcGISProUpdates.reg" target="_blank" rel="noopener">Open</a>
+        <a class="pill dl js-download" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/DisableArcGISProUpdates.zip?download=1" data-url="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/DisableArcGISProUpdates.zip" data-filename="DisableArcGISProUpdates.zip" download>Download ZIP</a>
+        <span class="zip-note">ZIP (recommended)</span>
       </div>
     </div>
 
@@ -52,8 +56,9 @@
       <p class="menu-sub script-usage">นำไฟล์ bat ไปวางที่ folder เดียวกับ Patch ArcGIS คลิกขวาไฟล์ .bat แล้วเลือก Run as administrator เพื่อรันติดตั้งแพตช์แบบออฟไลน์อัตโนมัติ.</p>
       <div class="card-body">File: <span class="kbd">script/Autoinstallpatch.bat</span></div>
       <div class="actions script-actions">
-        <a class="pill open" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/script/Autoinstallpatch.bat" download>Open</a>
-        <a class="pill dl" href="https://raw.githubusercontent.com/tongkhemmathat-dot/ESRI-Patch-list/main/script/Autoinstallpatch.bat" download>Download</a>
+        <a class="pill open" href="./view.html?file=script%2FAutoinstallpatch.bat" target="_blank" rel="noopener">Open</a>
+        <a class="pill dl js-download" href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip?download=1" data-url="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip" data-filename="ArcGIS_OfflinePatch_AutoInstaller.zip" download>Download ZIP</a>
+        <span class="zip-note">ZIP (recommended)</span>
       </div>
     </div>
   </div>
@@ -92,6 +97,31 @@
     themeBtn.addEventListener("click", () => {
       const current = document.documentElement.getAttribute("data-theme") || "light";
       applyTheme(current === "dark" ? "light" : "dark");
+    });
+  })();
+  (function () {
+    function forceDownload(url, filename) {
+      if (!url) return;
+      const a = document.createElement("a");
+      const sep = url.includes("?") ? "&" : "?";
+      a.href = url + sep + "download=1";
+      a.download = filename || "";
+      a.rel = "noopener";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    const buttons = document.querySelectorAll(".js-download");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const url = btn.getAttribute("data-url");
+        const filename = btn.getAttribute("data-filename");
+        if (url) {
+          e.preventDefault();
+          forceDownload(url, filename);
+        }
+      });
     });
   })();
 </script>
