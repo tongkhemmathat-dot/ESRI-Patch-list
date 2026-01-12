@@ -32,17 +32,18 @@
 </header>
 
 <main>
-  <div class="meta">
-    <span class="badge">Scripts</span>
-    <span class="badge">Local Downloads</span>
-  </div>
-  <p class="menu-sub download-note">ZIP download is recommended for security and browser compatibility.</p>
+  
 
-  <div class="grid">
+  <div class="grid script-grid">
     <div class="card script-card">
       <h2 class="menu-title">Disable ArcGIS Pro Updates (Registry)</h2>
       <p class="menu-desc">สคริปต์สำหรับปิดการตรวจสอบอัปเดตอัตโนมัติของ ArcGIS Pro.</p>
-      <p class="menu-sub script-usage">ดับเบิลคลิกไฟล์ .reg แล้วกด Yes เพื่อเพิ่มค่ารีจิสทรี จากนั้นเปิด ArcGIS Pro ใหม่เพื่อปิดการตรวจอัปเดต.</p>
+      <div class="menu-sub script-usage">
+        วิธีใช้งาน:
+        <ol>
+          <li>ดับเบิลคลิกไฟล์ .reg แล้วกด Yes เพื่อเพิ่มค่ารีจิสทรี จากนั้นเปิด ArcGIS Pro ใหม่เพื่อปิดการตรวจอัปเดต.</li>
+        </ol>
+      </div>
       <div class="card-body">File: <span class="kbd">script/DisableArcGISProUpdates.reg</span></div>
       <div class="actions script-actions">
         <a class="pill open" href="./view.html?file=script/DisableArcGISProUpdates.reg" target="_blank" rel="noopener">Open</a>
@@ -56,7 +57,16 @@
     <div class="card script-card">
       <h2 class="menu-title">ArcGIS Offline Patch Auto Installer (Batch)</h2>
       <p class="menu-desc">สคริปต์ช่วยติดตั้งแพตช์แบบออฟไลน์โดยอัตโนมัติ.</p>
-      <p class="menu-sub script-usage">นำไฟล์ bat ไปวางที่ folder เดียวกับ Patch ArcGIS คลิกขวาไฟล์ .bat แล้วเลือก Run as administrator เพื่อรันติดตั้งแพตช์แบบออฟไลน์อัตโนมัติ.</p>
+      <div class="menu-sub script-usage">
+        วิธีใช้งาน:
+        <ol>
+          <li>นำไฟล์ .bat วางที่โฟลเดอร์ที่มีไฟล์ patch .msp อยู่</li>
+          <li>เปิด CMD (Run as administrator)</li>
+          <li>cd ไปที่ path ที่วาง .bat ไว้</li>
+          <li>รัน install patch.bat</li>
+        </ol>
+        จะมี log แสดงแต่ละ patch ถ้าติดตั้งเรียบร้อย
+      </div>
       <div class="card-body">File: <span class="kbd">script/Autoinstallpatch.bat</span></div>
       <div class="actions script-actions">
         <a class="pill open" href="./view.html?file=script/Autoinstallpatch.bat" target="_blank" rel="noopener">Open</a>
