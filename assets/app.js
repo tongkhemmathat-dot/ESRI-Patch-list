@@ -1,6 +1,6 @@
 let DATA = {
   "All_Enterprise": {
-    "columns": ["Released", "Release Month", "Component", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"],
+    "columns": ["Released", "Release Month", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"],
     "rows": []
   }
 };
@@ -139,7 +139,18 @@ function normalizeVersionToToken(versionStr) {
   return s.replaceAll(".", "");
 }
 
-function pickPatchFileByVersion(patchFilesArray, versionStr) {
+function fileExt(url) {
+  const m = String(url || "").match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+  return m ? m[1].toLowerCase() : "";
+}
+function isLinuxPatchFile(url) {
+  return ["tar", "gz"].includes(fileExt(url));
+}
+function isWindowsPatchFile(url) {
+  return ["msp", "exe"].includes(fileExt(url));
+}
+
+function pickPatchFileByVersion(patchFilesArray, versionStr, osFilter) {
   const token = normalizeVersionToToken(versionStr);
   if (!token) return null;
   const files = Array.isArray(patchFilesArray) ? patchFilesArray : [];
@@ -149,13 +160,22 @@ function pickPatchFileByVersion(patchFilesArray, versionStr) {
     new RegExp(`/PFA-${token}-`, "i"),
     new RegExp(`/S-${token}-`, "i")
   ];
+  const matches = [];
   for (const fileUrl of files) {
     const url = String(fileUrl || "").trim();
     if (!url) continue;
     if (!/gisupdates\.esri\.com/i.test(url)) continue;
-    if (patterns.some(re => re.test(url))) return url;
+    if (patterns.some(re => re.test(url))) matches.push(url);
   }
-  return null;
+  if (!matches.length) return null;
+  if (osFilter === "Linux") {
+    const lx = matches.find(isLinuxPatchFile);
+    if (lx) return lx;
+  } else if (osFilter === "Windows") {
+    const win = matches.find(isWindowsPatchFile);
+    if (win) return win;
+  }
+  return matches[0];
 }
 
 function getRowVersion(rowObj) {
@@ -167,12 +187,12 @@ function getRowVersion(rowObj) {
   return "";
 }
 
-function getDirectPatchDownloadUrl(rowObj) {
+function getDirectPatchDownloadUrl(rowObj, osFilter) {
   const raw = rowObj?._raw || rowObj || {};
   const versionStr = getRowVersion(rowObj);
   const patchFiles = raw?.PatchFiles || raw?.patchFiles || raw?.patchfiles;
   if (Array.isArray(patchFiles) && patchFiles.length) {
-    const match = pickPatchFileByVersion(patchFiles, versionStr);
+    const match = pickPatchFileByVersion(patchFiles, versionStr, osFilter);
     return match || null;
   }
   const preferredKeys = [
@@ -190,11 +210,11 @@ function getDirectPatchDownloadUrl(rowObj) {
   return null;
 }
 
-function renderPatchActionsCell(row, colIndex, columns) {
+function renderPatchActionsCell(row, colIndex, columns, osFilter) {
   const rowObj = colIndex.has("__row")
     ? row[colIndex.get("__row")]
     : Object.fromEntries(columns.map((c, i) => [c, row[i]]));
-  const directUrl = getDirectPatchDownloadUrl(rowObj);
+  const directUrl = getDirectPatchDownloadUrl(rowObj, osFilter);
   let out = '<div class="actions">';
   if (directUrl) {
     out += '<a class="pill dl" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download>Download patch</a>';
@@ -244,10 +264,21 @@ function normalizeSecurity(val) {
   return "N";
 }
 
+function normalizePlatform(val) {
+  const s = String(val || "").trim();
+  if (!s) return "";
+  return s.split(",").map(p => p.trim()).filter(Boolean).join(", ");
+}
+
+function platformMatches(platformVal, osFilter) {
+  if (!osFilter) return true;
+  return String(platformVal || "").toLowerCase().includes(osFilter.toLowerCase());
+}
+
 function normalizePatchesJson(raw) {
   if (raw?.All_Enterprise?.columns && raw?.All_Enterprise?.rows) return raw;
   if (raw?.columns && raw?.rows) return { All_Enterprise: raw };
-  const columns = ["Released", "Release Month", "Component", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"];
+  const columns = ["Released", "Release Month", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"];
   const data = {};
   const addRow = (sheetKey, row) => {
     if (!data[sheetKey]) data[sheetKey] = { columns: [...columns], rows: [] };
@@ -275,6 +306,7 @@ function normalizePatchesJson(raw) {
       const released = normalizeReleaseDate(p?.ReleaseDate || p?.Released || p?.released || "");
       const month = releaseMonthFromDate(released);
       const component = inferPatchComponent(p?.Products || p?.Component || p?.component);
+      const platform = normalizePlatform(p?.Platform || p?.platform || p?.OS || p?.os);
       const security = normalizeSecurity(p?.Critical || p?.Security || p?.security);
       const name = p?.Name || p?.["Patch Name"] || p?.patch || "";
       const support = p?.url || p?.["Support Page"] || p?.support || "";
@@ -283,6 +315,7 @@ function normalizePatchesJson(raw) {
         "Released": released,
         "Release Month": month,
         "Component": component,
+        "Platform": platform,
         "Security": security,
         "Patch Name": name,
         "Support Page": support,
@@ -294,6 +327,7 @@ function normalizePatchesJson(raw) {
         rowObj["Released"],
         rowObj["Release Month"],
         rowObj["Component"],
+        rowObj["Platform"],
         rowObj["Security"],
         rowObj["Patch Name"],
         rowObj["Support Page"],
@@ -332,8 +366,8 @@ async function loadPatchesLatest(force = false) {
 
 function showPatchTableMessage(message) {
   const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
-  const columns = sheet?.columns?.length ? sheet.columns : ["Released", "Component", "Security", "Patch Name", "Support Page"];
-  const preferredOrder = ["Released", "Component", "Security", "Patch Name", "Support Page", "Download"];
+  const columns = sheet?.columns?.length ? sheet.columns : ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page"];
+  const preferredOrder = ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
   const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
   const thead = document.getElementById("thead");
   if (thead) {
@@ -366,14 +400,16 @@ function renderTable() {
   const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
   if (!sheet) return;
   const {columns, rows} = sheet;
-  const preferredOrder = ["Released", "Component", "Security", "Patch Name", "Support Page", "Download"];
+  const preferredOrder = ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
   const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
   const colIndex = new Map(columns.map((c,i)=>[c,i]));
   const q = document.getElementById("q").value.trim().toLowerCase();
   const comp = document.getElementById("componentSel").value.trim().toLowerCase();
   const sec = document.getElementById("securitySel").value.trim();
+  const os = document.getElementById("osSel").value.trim();
   const compIdx = colIndex.has("Component") ? colIndex.get("Component") : -1;
   const secIdx = colIndex.has("Security") ? colIndex.get("Security") : -1;
+  const platIdx = colIndex.has("Platform") ? colIndex.get("Platform") : -1;
 
   const thead = document.getElementById("thead");
   if (thead) {
@@ -404,6 +440,9 @@ function renderTable() {
       const v = String(r[secIdx]||"");
       if (v !== sec) return false;
     }
+    if (os && platIdx >= 0) {
+      if (!platformMatches(r[platIdx], os)) return false;
+    }
     if (q) {
       const joined = r.map(x=>String(x||"")).join(" ").toLowerCase();
       if (!joined.includes(q)) return false;
@@ -425,7 +464,7 @@ function renderTable() {
       const colLow = col.toLowerCase();
 
       if (colLow === "download" || colLow === "links") {
-        td.innerHTML = renderPatchActionsCell(r, colIndex, columns);
+        td.innerHTML = renderPatchActionsCell(r, colIndex, columns, os);
       } else if (colLow.includes("download") && colLow.includes("url")) {
         td.innerHTML = renderLinksCell(val);
       } else if (colLow.includes("support")) {
@@ -440,6 +479,9 @@ function renderTable() {
       } else if (colLow === "component") {
         td.textContent = String(val||"");
         td.className = "nowrap col-component";
+      } else if (colLow === "platform") {
+        td.textContent = String(val||"");
+        td.className = "nowrap col-platform";
       } else if (colLow.includes("summary") || colLow.includes("patch name") || colLow.includes("name")) {
         td.textContent = String(val||"");
         td.className = "wrap col-name";
@@ -468,10 +510,12 @@ versionSel.addEventListener("change", () => {
 document.getElementById("q").addEventListener("input", () => renderTable());
 document.getElementById("componentSel").addEventListener("change", () => renderTable());
 document.getElementById("securitySel").addEventListener("change", () => renderTable());
+document.getElementById("osSel").addEventListener("change", () => renderTable());
 document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("q").value = "";
   document.getElementById("componentSel").value = "";
   document.getElementById("securitySel").value = "";
+  document.getElementById("osSel").value = "";
   renderTable();
 });
 

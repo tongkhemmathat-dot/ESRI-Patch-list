@@ -46,8 +46,10 @@
 - โหลดข้อมูลจาก `data/patches.json` (no-store, fetch ใหม่ทุกครั้งที่เปิดแท็บ)
 - รองรับข้อมูลได้หลายรูปแบบผ่าน `normalizePatchesJson()` (ทั้ง raw ของ Esri ที่เป็น `{Product:[{version, patches:[...]}]}` และ schema แบบ `{columns, rows}` ที่ normalize ไว้แล้ว)
 - แยกข้อมูลเป็นชีทตามเวอร์ชัน (`v10_3`, `v11_1`, ...) บวกชีทรวม `All_Enterprise`
-- ตัวกรอง: ค้นหาข้อความอิสระ, กรองตาม Component (Server/Portal/Data Store/...), กรองตาม Security (Y/N)
+- ตัวกรอง: ค้นหาข้อความอิสระ, กรองตาม Component (Server/Portal/Data Store/...), กรองตาม Security (Y/N), กรองตาม **OS** (All/Windows/Linux/macOS)
+- คอลัมน์ **Platform** แสดงค่า OS ที่แพตช์รองรับ (มาจากฟิลด์ `Platform` ของ Esri เช่น `"Linux,Windows"`) ตัวกรอง OS จะจับคู่แบบ substring กับค่านี้ (case-insensitive) เพื่อให้แพตช์ที่รองรับหลาย OS ยังปรากฏได้ในทุกตัวกรองที่เกี่ยวข้อง
 - คอลัมน์ Download พยายามหาไฟล์แพตช์ตรงเวอร์ชันจาก `PatchFiles[]` โดยจับ pattern `ArcGIS-<ver>-`, `/PFA-<ver>-`, `/S-<ver>-` บนโดเมน `gisupdates.esri.com` เท่านั้น — ถ้าไม่เจอจะ fallback ไปหา key อื่น (`download_url`, `qfe_url`, ฯลฯ)
+- เมื่อตั้งตัวกรอง OS เป็น **Linux** หรือ **Windows** ปุ่ม Download จะเลือกไฟล์ที่ตรงกับ OS นั้นโดยอัตโนมัติ (สังเกตจากนามสกุลไฟล์: `.tar`/`.tar.gz` = Linux, `.msp`/`.exe` = Windows) ถ้าไม่พบไฟล์เฉพาะ OS จะ fallback กลับไปใช้ไฟล์แรกที่ตรงเวอร์ชัน
 
 ### 2) Software (`index.html#software`)
 > ⚠️ **หยุดอัปเดตแล้ว** — บัญชีที่ใช้เก็บไฟล์ต้นทางไม่มีอยู่แล้ว ข้อมูลใน Google Sheet จะไม่ถูกเพิ่ม/แก้ไขอีกต่อไป **ลิงก์ดาวน์โหลดที่มีอยู่เดิมยังใช้งานได้** แต่จะไม่มีซอฟต์แวร์เวอร์ชันใหม่เพิ่มเข้ามา และ**ห้ามแก้ไข** `SOFTWARE_CSV_URL` หรือ config อื่นที่เกี่ยวข้องกับส่วนนี้
