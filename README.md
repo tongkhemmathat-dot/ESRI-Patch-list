@@ -4,6 +4,8 @@
 
 > Powered By Khemmathat for Internal USE ONLY!!
 
+> ⚠️ **สถานะ Software (หยุดอัปเดตแล้ว):** ส่วน Software จะ**ไม่มีการอัปเดตข้อมูลอีกต่อไป** เนื่องจากบัญชีที่ใช้เก็บไฟล์ต้นทาง (Google Drive/Sheet) **ไม่มีอยู่แล้ว** ลิงก์ดาวน์โหลดเดิมที่เคยบันทึกไว้ยังใช้งานได้อยู่ แต่ตัวข้อมูลใน Google Sheet (`SOFTWARE_CSV_URL` ใน `assets/app.js`) จะไม่ถูกอัปเดตเพิ่มอีก **ห้ามแก้ไข config/URL นี้** ดูรายละเอียดในหัวข้อ [Software](#2-software-indexhtmlsoftware)
+
 ## Live Pages
 
 | หน้า | ไฟล์ | หน้าที่ |
@@ -48,6 +50,7 @@
 - คอลัมน์ Download พยายามหาไฟล์แพตช์ตรงเวอร์ชันจาก `PatchFiles[]` โดยจับ pattern `ArcGIS-<ver>-`, `/PFA-<ver>-`, `/S-<ver>-` บนโดเมน `gisupdates.esri.com` เท่านั้น — ถ้าไม่เจอจะ fallback ไปหา key อื่น (`download_url`, `qfe_url`, ฯลฯ)
 
 ### 2) Software (`index.html#software`)
+> ⚠️ **หยุดอัปเดตแล้ว** — บัญชีที่ใช้เก็บไฟล์ต้นทางไม่มีอยู่แล้ว ข้อมูลใน Google Sheet จะไม่ถูกเพิ่ม/แก้ไขอีกต่อไป **ลิงก์ดาวน์โหลดที่มีอยู่เดิมยังใช้งานได้** แต่จะไม่มีซอฟต์แวร์เวอร์ชันใหม่เพิ่มเข้ามา และ**ห้ามแก้ไข** `SOFTWARE_CSV_URL` หรือ config อื่นที่เกี่ยวข้องกับส่วนนี้
 - ดึงข้อมูลจาก Google Sheet ที่เผยแพร่เป็น CSV (`SOFTWARE_CSV_URL` ใน `assets/app.js`)
 - เดา Component และ Version จากชื่อไฟล์/พาธด้วย regex heuristics (`inferComponent`, `inferVersion`) รองรับ ArcGIS Server/Portal/Data Store/Notebook/Web Adaptor/Pro/Desktop/Insights/Monitor/License Manager
 - กรองตามเวอร์ชัน, Component, และค้นหาชื่อไฟล์
