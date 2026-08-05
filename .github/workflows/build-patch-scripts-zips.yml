@@ -5,6 +5,7 @@ on:
     paths:
       - "script/DisableArcGISProUpdates.reg"
       - "script/Autoinstallpatch.bat"
+      - "script/autopatch_linux.sh"
       - ".github/workflows/build-patch-scripts-zips.yml"
   workflow_dispatch:
 
@@ -34,6 +35,10 @@ jobs:
           # ZIP 2: Offline Patch Auto Installer
           rm -f patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip
           zip -j patch/script/ArcGIS_OfflinePatch_AutoInstaller.zip script/Autoinstallpatch.bat
+
+          # ZIP 3: Offline Patch Auto Installer (Linux)
+          rm -f patch/script/autopatch_linux.zip
+          zip -j patch/script/autopatch_linux.zip script/autopatch_linux.sh
 
           echo "Built ZIPs:"
           ls -lh patch/script/*.zip

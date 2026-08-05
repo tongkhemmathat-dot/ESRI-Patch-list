@@ -78,6 +78,28 @@
     </div>
 
     <div class="card script-card">
+      <h2 class="menu-title">ArcGIS Offline Patch Auto Installer (Linux)</h2>
+      <p class="menu-desc">สคริปต์ช่วยติดตั้งแพตช์แบบออฟไลน์โดยอัตโนมัติสำหรับ Linux (bash).</p>
+      <div class="menu-sub script-usage">
+        วิธีใช้งาน:
+        <ol>
+          <li>นำไฟล์ .sh วางที่โฟลเดอร์ที่มีไฟล์ patch .tar อยู่</li>
+          <li>ให้สิทธิ์รันสคริปต์: <span class="kbd">chmod +x autopatch.sh</span></li>
+          <li>รันสคริปต์: <span class="kbd">./autopatch.sh</span></li>
+        </ol>
+        สคริปต์จะแตกไฟล์ .tar ทั้งหมดในโฟลเดอร์ปัจจุบัน แล้วรัน <span class="kbd">applypatch</span> ในแต่ละโฟลเดอร์ให้อัตโนมัติ พร้อม log แสดงผลแต่ละ patch
+      </div>
+      <div class="card-body">File: <span class="kbd">script/autopatch_linux.sh</span></div>
+      <div class="actions script-actions">
+        <a class="pill open" href="./view.html?file=script/autopatch_linux.sh" target="_blank" rel="noopener">Open</a>
+        <a class="pill dl"
+           href="https://github.com/tongkhemmathat-dot/ESRI-Patch-list/raw/main/patch/script/autopatch_linux.zip?download=1"
+           download>Download ZIP</a>
+        <span class="zip-note">Recommended</span>
+      </div>
+    </div>
+
+    <div class="card script-card">
       <h2 class="menu-title">Microsoft Runtime Downloads</h2>
       <p class="menu-desc">ลิงก์ดาวน์โหลดทางการสำหรับติดตั้ง .NET และ Edge WebView2.</p>
       <p class="menu-sub script-usage">เหมาะสำหรับเครื่องที่ต้องติดตั้ง runtime เพิ่มก่อนใช้งานเครื่องมือหรือสคริปต์.</p>

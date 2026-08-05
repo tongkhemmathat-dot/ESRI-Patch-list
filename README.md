@@ -30,7 +30,8 @@
 │   └── patches.json            # ข้อมูลแพตช์ ดึงจาก Esri อัตโนมัติทุกวัน
 ├── script/
 │   ├── DisableArcGISProUpdates.reg
-│   └── Autoinstallpatch.bat
+│   ├── Autoinstallpatch.bat
+│   └── autopatch_linux.sh
 ├── patch/script/                # ไฟล์ .zip ที่ build อัตโนมัติจาก script/*
 │   ├── DisableArcGISProUpdates.zip
 │   ├── ArcGIS_OfflinePatch_AutoInstaller.zip
@@ -61,9 +62,10 @@
 
 ### 3) Scripts & Tools (`scripts.html`)
 - การ์ดสำหรับแต่ละสคริปต์: คำอธิบาย, วิธีใช้งาน (ภาษาไทย), ปุ่ม **Open** (ไปที่ `view.html?file=...`) และ **Download ZIP** (ลิงก์ตรงไปยัง `patch/script/*.zip` บน GitHub)
-- ปัจจุบันมี 2 สคริปต์ที่ผูกครบวงจร:
+- ปัจจุบันมี 3 สคริปต์ที่ผูกครบวงจร:
   - `script/DisableArcGISProUpdates.reg` — ปิดการตรวจอัปเดตอัตโนมัติของ ArcGIS Pro
   - `script/Autoinstallpatch.bat` — ติดตั้งแพตช์ `.msp` แบบออฟไลน์บน Windows
+  - `script/autopatch_linux.sh` — ติดตั้งแพตช์ `.tar` แบบออฟไลน์บน Linux (แตกไฟล์ `.tar` ทั้งหมดในโฟลเดอร์ปัจจุบันแล้วรัน `applypatch` ในแต่ละโฟลเดอร์ให้อัตโนมัติ)
 
 ### 4) Script Viewer (`view.html`)
 - อ่านพารามิเตอร์ `?file=` แล้วตรวจกับ `allowList` (hardcode ไว้ในไฟล์) ก่อน fetch เนื้อหามาแสดงแบบ read-only — ป้องกันไม่ให้เปิดไฟล์ใด ๆ ในเซิร์ฟเวอร์ได้ตามใจชอบ
@@ -73,9 +75,9 @@
 | Workflow | Trigger | หน้าที่ |
 |---|---|---|
 | `update-patches.yml` | cron รายวัน 02:10 UTC (~09:10 ไทย) + manual dispatch | ดึง `patches.json` ล่าสุดจาก `https://downloads.esri.com/patch_notification/patches.json` เทียบ SHA256 กับของเดิม แล้ว commit/push เฉพาะตอนมีการเปลี่ยนแปลง |
-| `build-patch-scripts-zips.yml` | push ที่แก้ `script/DisableArcGISProUpdates.reg` หรือ `script/Autoinstallpatch.bat` + manual dispatch | zip ไฟล์สคริปต์แต่ละตัวใส่ `patch/script/*.zip` แล้ว commit เฉพาะตอนไฟล์ zip เปลี่ยน |
+| `build-patch-scripts-zips.yml` | push ที่แก้ `script/DisableArcGISProUpdates.reg`, `script/Autoinstallpatch.bat` หรือ `script/autopatch_linux.sh` + manual dispatch | zip ไฟล์สคริปต์แต่ละตัวใส่ `patch/script/*.zip` แล้ว commit เฉพาะตอนไฟล์ zip เปลี่ยน |
 
-> หมายเหตุ: ปัจจุบัน `patch/script/autopatch_linux.zip` ถูกอัปโหลดตรง ๆ (ไม่ได้ build จาก workflow) และยังไม่มี source ไฟล์ `.sh` ใน `script/`, ยังไม่ถูกผูกเข้ากับ `build-patch-scripts-zips.yml`, `scripts.html`, หรือ `allowList` ใน `view.html` — เป็นงานที่ยังค้างอยู่
+> หมายเหตุ (`.gitattributes`): `script/autopatch_linux.sh` ถูกบังคับให้เก็บ line ending แบบ LF เสมอ (`*.sh text eol=lf`) เพราะ shell script ที่มี CRLF จะรันไม่ได้บน Linux (`$'\r': command not found`) — สำคัญมากถ้าแก้ไฟล์นี้บนเครื่อง Windows
 
 ## วิธีเพิ่มสคริปต์ใหม่
 

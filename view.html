@@ -68,7 +68,8 @@
   (function () {
     const allowList = new Set([
       "script/DisableArcGISProUpdates.reg",
-      "script/Autoinstallpatch.bat"
+      "script/Autoinstallpatch.bat",
+      "script/autopatch_linux.sh"
     ]);
     const params = new URLSearchParams(window.location.search);
     const file = params.get("file") || "";
