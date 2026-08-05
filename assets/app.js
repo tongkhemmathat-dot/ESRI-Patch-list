@@ -1,6 +1,6 @@
 let DATA = {
   "All_Enterprise": {
-    "columns": ["Released", "Release Month", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"],
+    "columns": ["Released", "Release Month", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"],
     "rows": []
   }
 };
@@ -278,7 +278,7 @@ function platformMatches(platformVal, osFilter) {
 function normalizePatchesJson(raw) {
   if (raw?.All_Enterprise?.columns && raw?.All_Enterprise?.rows) return raw;
   if (raw?.columns && raw?.rows) return { All_Enterprise: raw };
-  const columns = ["Released", "Release Month", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"];
+  const columns = ["Released", "Release Month", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "PatchFiles", "__row"];
   const data = {};
   const addRow = (sheetKey, row) => {
     if (!data[sheetKey]) data[sheetKey] = { columns: [...columns], rows: [] };
@@ -314,6 +314,7 @@ function normalizePatchesJson(raw) {
       const rowObj = {
         "Released": released,
         "Release Month": month,
+        "Version": rowVersion,
         "Component": component,
         "Platform": platform,
         "Security": security,
@@ -326,6 +327,7 @@ function normalizePatchesJson(raw) {
       const row = [
         rowObj["Released"],
         rowObj["Release Month"],
+        rowObj["Version"],
         rowObj["Component"],
         rowObj["Platform"],
         rowObj["Security"],
@@ -366,8 +368,8 @@ async function loadPatchesLatest(force = false) {
 
 function showPatchTableMessage(message) {
   const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
-  const columns = sheet?.columns?.length ? sheet.columns : ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page"];
-  const preferredOrder = ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
+  const columns = sheet?.columns?.length ? sheet.columns : ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page"];
+  const preferredOrder = ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
   const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
   const thead = document.getElementById("thead");
   if (thead) {
@@ -400,7 +402,7 @@ function renderTable() {
   const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
   if (!sheet) return;
   const {columns, rows} = sheet;
-  const preferredOrder = ["Released", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
+  const preferredOrder = ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
   const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
   const colIndex = new Map(columns.map((c,i)=>[c,i]));
   const q = document.getElementById("q").value.trim().toLowerCase();
@@ -476,6 +478,9 @@ function renderTable() {
       } else if (colLow === "released") {
         td.textContent = String(val||"");
         td.className = "nowrap col-date";
+      } else if (colLow === "version") {
+        td.textContent = val ? String(val) : "—";
+        td.className = "nowrap col-version";
       } else if (colLow === "component") {
         td.textContent = String(val||"");
         td.className = "nowrap col-component";

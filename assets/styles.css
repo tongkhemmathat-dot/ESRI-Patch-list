@@ -280,7 +280,9 @@
     white-space:nowrap;
   }
   .col-released{width:120px}
+  .col-version{width:100px}
   .col-component{width:140px}
+  .col-platform{width:130px}
   .col-security{width:90px}
   .col-name{width:auto}
   .col-support{width:180px}
@@ -303,6 +305,7 @@
   .col-date{font-variant-numeric:tabular-nums}
   .col-month{color:var(--muted)}
   .col-component{font-weight:600}
+  .col-version{font-weight:600;color:var(--fg)}
   .col-support .pill{white-space:nowrap}
   a{color:#7dd3fc;text-decoration:none}
   a:hover{color:#bae6fd;text-decoration:underline}
