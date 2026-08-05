@@ -211,11 +211,16 @@ function getDirectPatchDownloadUrl(rowObj, osFilter) {
 }
 
 function renderPatchActionsCell(row, colIndex, columns, osFilter) {
+  let out = '<div class="actions">';
+  if (activeSheet === "All_Enterprise") {
+    out += '<span class="pill disabled" title="แพตช์ชื่อเดียวกันมีหลายเวอร์ชัน กรุณาเลือกเวอร์ชันที่ต้องการจากตัวเลือก Version ด้านบนก่อนเพื่อดาวน์โหลด">เลือกเวอร์ชันก่อนดาวน์โหลด</span>';
+    out += '</div>';
+    return out;
+  }
   const rowObj = colIndex.has("__row")
     ? row[colIndex.get("__row")]
     : Object.fromEntries(columns.map((c, i) => [c, row[i]]));
   const directUrl = getDirectPatchDownloadUrl(rowObj, osFilter);
-  let out = '<div class="actions">';
   if (directUrl) {
     out += '<a class="pill dl" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download>Download patch</a>';
   } else {
@@ -505,6 +510,12 @@ function renderTable() {
     "Rows: " + filtered.length.toLocaleString() + " (rendered " + renderRows.length.toLocaleString() + ")";
   document.getElementById("status").textContent =
     (filtered.length > HARD_LIMIT) ? ("Showing first " + HARD_LIMIT.toLocaleString() + " rows. Refine filters.") : "";
+  const tipBadge = document.getElementById("tipBadge");
+  if (tipBadge) {
+    tipBadge.textContent = (activeSheet === "All_Enterprise")
+      ? "Tip: เลือกเวอร์ชันจากตัวเลือก Version เพื่อเปิดใช้งานปุ่ม Download"
+      : "Tip: filter by Component or Security for faster navigation.";
+  }
 }
 
 versionSel.addEventListener("change", () => {
