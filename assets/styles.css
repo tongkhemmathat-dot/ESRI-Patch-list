@@ -394,3 +394,41 @@
     h1{font-size:18px}
     .bar{padding:8px}
   }
+  .pin-modal{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(9,30,66,.45);
+    backdrop-filter:blur(2px);
+    padding:16px;
+  }
+  [data-theme="dark"] .pin-modal{background:rgba(0,0,0,.6)}
+  .pin-modal-box{
+    width:100%;
+    max-width:320px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:22px;
+    text-align:center;
+    animation:fadeInUp .25s ease both;
+  }
+  .pin-modal-title{font-size:15px;font-weight:800;margin:0 0 6px}
+  .pin-modal-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+  .pin-modal-box input{
+    width:100%;
+    text-align:center;
+    font-size:22px;
+    letter-spacing:.6em;
+    padding:12px 10px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--panel);
+  }
+  .pin-modal-error{min-height:18px;color:var(--danger);font-size:12px;margin-top:8px}
+  .pin-modal-actions{display:flex;gap:10px;margin-top:14px;justify-content:center}
+  .pin-modal-actions .btn{flex:1;min-width:0}

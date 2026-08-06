@@ -181,6 +181,19 @@
 </section>
 </main>
 
+<div id="pinModal" class="pin-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="pinModalTitle">
+  <div class="pin-modal-box">
+    <div class="pin-modal-title" id="pinModalTitle">หน้าดาวน์โหลดซอฟต์แวร์ต้องใส่ PIN</div>
+    <div class="pin-modal-sub">กรุณากรอกรหัส PIN 4 หลักเพื่อเข้าใช้งาน</div>
+    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" />
+    <div id="pinError" class="pin-modal-error"></div>
+    <div class="pin-modal-actions">
+      <button class="btn" id="pinCancelBtn" type="button">ยกเลิก</button>
+      <button class="btn toggle" id="pinSubmitBtn" type="button">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
 <footer>
   Powered By Khemmathat for Internal USE ONLY!! (v0.15)
 </footer>

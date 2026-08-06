@@ -838,7 +838,60 @@ function setView(view, updateHash = true) {
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-async function showSoftware() {
+// ===== PIN gate for Software download view =====
+// Client-side only: deters casual access, not a real security control
+// (anyone opening dev tools / view-source can see the PIN).
+const SOFTWARE_PIN = '1234';
+const SOFTWARE_UNLOCK_KEY = 'swUnlocked';
+
+const pinModal = document.getElementById('pinModal');
+const pinInput = document.getElementById('pinInput');
+const pinError = document.getElementById('pinError');
+const pinSubmitBtn = document.getElementById('pinSubmitBtn');
+const pinCancelBtn = document.getElementById('pinCancelBtn');
+
+function isSoftwareUnlocked() {
+  try { return sessionStorage.getItem(SOFTWARE_UNLOCK_KEY) === '1'; }
+  catch (e) { return false; }
+}
+
+function openPinGate() {
+  if (!pinModal) return;
+  pinError.textContent = '';
+  pinInput.value = '';
+  pinModal.style.display = 'flex';
+  pinInput.focus();
+}
+
+function closePinGate() {
+  if (!pinModal) return;
+  pinModal.style.display = 'none';
+}
+
+function handlePinSubmit() {
+  const val = pinInput.value.trim();
+  if (val === SOFTWARE_PIN) {
+    try { sessionStorage.setItem(SOFTWARE_UNLOCK_KEY, '1'); } catch (e) {}
+    closePinGate();
+    unlockAndShowSoftware();
+  } else {
+    pinError.textContent = 'PIN ไม่ถูกต้อง กรุณาลองใหม่';
+    pinInput.value = '';
+    pinInput.focus();
+  }
+}
+
+pinSubmitBtn?.addEventListener('click', handlePinSubmit);
+pinCancelBtn?.addEventListener('click', () => {
+  closePinGate();
+  if (!isSoftwareUnlocked()) setView('menu');
+});
+pinInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handlePinSubmit();
+  else if (e.key === 'Escape') pinCancelBtn?.click();
+});
+
+async function unlockAndShowSoftware() {
   setView('software');
   if (!SOFTWARE_ROWS.length) {
     try { await loadSoftwareFromSheet(); }
@@ -846,6 +899,14 @@ async function showSoftware() {
       document.getElementById('swStatus').textContent = 'Error: ' + (e?.message || e);
     }
   }
+}
+
+async function showSoftware() {
+  if (!isSoftwareUnlocked()) {
+    openPinGate();
+    return;
+  }
+  await unlockAndShowSoftware();
 }
 
 menuBtn?.addEventListener('click', () => setView('menu'));
