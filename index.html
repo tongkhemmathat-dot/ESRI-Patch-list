@@ -20,22 +20,22 @@
     <div class="sub">Select version from dropdown. Click Open/Download buttons for each patch file link.</div>
   </div>
 
-  <div class="bar">
-    <button class="btn" id="menuBtn" type="button">Menu</button>
-    <button class="btn toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
-    <button class="btn" id="tabSoftware" type="button" aria-pressed="false">Software</button>
-    <a class="btn" href="./scripts.html">Scripts & Tools</a>
+  <nav class="bar" aria-label="Site navigation">
+    <button class="btn btn-md" id="menuBtn" type="button">Menu</button>
+    <button class="btn btn-md toggle" id="tabPatch" type="button" aria-pressed="true">Patches</button>
+    <button class="btn btn-md" id="tabSoftware" type="button" aria-pressed="false">Software</button>
+    <a class="btn btn-md" href="./scripts.html">Scripts & Tools</a>
     <button class="btn toggle theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
-      <span class="icon icon-moon">🌙</span>
-      <span class="icon icon-sun">☀️</span>
+      <span class="icon icon-moon" aria-hidden="true">🌙</span>
+      <span class="icon icon-sun" aria-hidden="true">☀️</span>
     </button>
-  </div>
+  </nav>
 </header>
 
 <main>
 <section id="menuView">
   <div id="patchAlert" class="patch-alert" style="display:none;">
-    <div class="patch-alert-icon">🛡️</div>
+    <div class="patch-alert-icon" aria-hidden="true">🛡️</div>
     <div class="patch-alert-body">
       <div class="patch-alert-kicker">
         แจ้งเตือนแพตช์ใหม่ · <span id="patchAlertMonth"></span>
@@ -45,7 +45,7 @@
       <div class="patch-alert-sub" id="patchAlertSub"></div>
     </div>
     <div class="patch-alert-actions">
-      <a id="patchAlertLink" class="btn" target="_blank" rel="noopener">อ่านรายละเอียด</a>
+      <a id="patchAlertLink" class="btn btn-sm" target="_blank" rel="noopener">อ่านรายละเอียด</a>
     </div>
   </div>
   <div class="menu-wrap">
@@ -72,8 +72,11 @@
 
 <section id="patchView" style="display:none;">
   <div class="bar" style="margin:0 0 12px;">
+    <label class="sr-only" for="versionSel">Version</label>
     <select id="versionSel" title="Version"></select>
+    <label class="sr-only" for="q">Search patches</label>
     <input id="q" type="search" placeholder="Search: patch name, ID, summary, URLs ..." />
+    <label class="sr-only" for="componentSel">Component</label>
     <select id="componentSel" title="Component">
       <option value="">All components</option>
       <option>ArcGIS Server</option>
@@ -83,18 +86,20 @@
       <option>GeoEvent</option>
       <option>Other</option>
     </select>
+    <label class="sr-only" for="securitySel">Security</label>
     <select id="securitySel" title="Security">
       <option value="">Security: All</option>
       <option value="Y">Security = Y</option>
       <option value="N">Security = N</option>
     </select>
+    <label class="sr-only" for="osSel">Operating system</label>
     <select id="osSel" title="OS">
       <option value="">OS: All</option>
       <option value="Windows">Windows</option>
       <option value="Linux">Linux</option>
       <option value="macOS">macOS</option>
     </select>
-    <button class="btn" id="clearBtn">Clear</button>
+    <button class="btn btn-sm" id="clearBtn">Clear</button>
     <span class="hint" id="status"></span>
   </div>
 
@@ -109,12 +114,9 @@
       <colgroup>
         <col class="col-released"/>
         <col class="col-version"/>
-        <col class="col-component"/>
-        <col class="col-platform"/>
+        <col class="col-patch"/>
         <col class="col-security"/>
-        <col class="col-name"/>
-        <col class="col-support"/>
-        <col class="col-download"/>
+        <col class="col-links"/>
       </colgroup>
       <thead><tr id="thead"></tr></thead>
     </table>
@@ -122,12 +124,9 @@
       <colgroup>
         <col class="col-released"/>
         <col class="col-version"/>
-        <col class="col-component"/>
-        <col class="col-platform"/>
+        <col class="col-patch"/>
         <col class="col-security"/>
-        <col class="col-name"/>
-        <col class="col-support"/>
-        <col class="col-download"/>
+        <col class="col-links"/>
       </colgroup>
       <tbody id="tbody"></tbody>
     </table>
@@ -143,9 +142,11 @@
   </div>
 
   <div class="bar" style="margin:0 0 12px;">
+    <label class="sr-only" for="swVersionSel">Version</label>
     <select id="swVersionSel" title="Version">
       <option value="">All versions</option>
     </select>
+    <label class="sr-only" for="swCompSel">Component</label>
     <select id="swCompSel" title="Component">
       <option value="">All components</option>
       <option value="ArcGIS Server">ArcGIS Server</option>
@@ -158,24 +159,21 @@
       <option value="Enterprise">Enterprise</option>
       <option value="Other">Other</option>
     </select>
+    <label class="sr-only" for="swQ">Search filename</label>
     <input id="swQ" type="search" placeholder="Search filename..." />
-    <button class="btn" id="swReload" type="button">Reload</button>
+    <button class="btn btn-md" id="swReload" type="button">Reload</button>
   </div>
 
   <div class="tablewrap">
     <table class="table-head">
       <colgroup>
-        <col style="width:110px"/>
-        <col style="width:140px"/>
         <col style="width:auto"/>
         <col style="width:110px"/>
-        <col style="width:240px"/>
+        <col style="width:110px"/>
       </colgroup>
       <thead>
         <tr>
-          <th>Version</th>
-          <th>Component</th>
-          <th>Filename</th>
+          <th>Software</th>
           <th>Size (GB)</th>
           <th>Links</th>
         </tr>
@@ -183,11 +181,9 @@
     </table>
     <table class="table-body">
       <colgroup>
-        <col style="width:110px"/>
-        <col style="width:140px"/>
         <col style="width:auto"/>
         <col style="width:110px"/>
-        <col style="width:240px"/>
+        <col style="width:110px"/>
       </colgroup>
       <tbody id="swTbody"></tbody>
     </table>
@@ -202,14 +198,14 @@
     <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" />
     <div id="pinError" class="pin-modal-error"></div>
     <div class="pin-modal-actions">
-      <button class="btn" id="pinCancelBtn" type="button">ยกเลิก</button>
-      <button class="btn toggle" id="pinSubmitBtn" type="button">ยืนยัน</button>
+      <button class="btn btn-md" id="pinCancelBtn" type="button">ยกเลิก</button>
+      <button class="btn btn-md toggle" id="pinSubmitBtn" type="button">ยืนยัน</button>
     </div>
   </div>
 </div>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.17)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.18)
 </footer>
 
 <script defer src="assets/app.js"></script>

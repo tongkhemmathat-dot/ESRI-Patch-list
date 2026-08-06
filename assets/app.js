@@ -85,35 +85,40 @@ function splitUrls(text) {
   return t.split(/\s+/).filter(x => x.toLowerCase().startsWith("http"));
 }
 
-function renderLinksCell(val) {
-  const urls = splitUrls(val);
-  if (!urls.length) return "";
-  const maxShow = 2;
-  const shown = urls.slice(0, maxShow);
-  const rest = urls.slice(maxShow);
+const ICON_ALERT = '<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>';
+const ICON_DASH = '<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const ICON_EXTERNAL = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+const ICON_DOWNLOAD = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
 
-  let out = '<div class="actions">';
-  for (const u of shown) {
-    const esc = escapeHtml(u);
-    out += '<a class="pill open" href="' + esc + '" target="_blank" rel="noopener noreferrer">Open</a>';
-    out += '<a class="pill dl" href="' + esc + '" target="_blank" rel="noopener noreferrer" download>Download</a>';
-  }
-  if (rest.length) {
-    out += '<a class="pill" href="#" onclick="alert(\'More links:\\n\\n\' + ' + JSON.stringify(rest.join('\n')) + '); return false;">More (' + rest.length + ')</a>';
-  }
-  out += '</div>';
-  return out;
+function buildSecurityCell(val) {
+  const v = String(val || "");
+  const isY = v === "Y";
+  const icon = isY ? ICON_ALERT : ICON_DASH;
+  const cls = isY ? "sec-badge sec-y" : "sec-badge sec-n";
+  return '<span class="' + cls + '">' + icon + escapeHtml(v) + '</span>';
 }
 
-function renderSupportCell(val) {
+function buildPatchCell(row, colIndex) {
+  const nameIdx = colIndex.get("Patch Name");
+  const compIdx = colIndex.get("Component");
+  const platIdx = colIndex.get("Platform");
+  const name = String((nameIdx !== undefined ? row[nameIdx] : "") ?? "");
+  const comp = String((compIdx !== undefined ? row[compIdx] : "") ?? "").trim();
+  const platforms = String((platIdx !== undefined ? row[platIdx] : "") ?? "")
+    .split(",").map(s => s.trim()).filter(Boolean);
+  let chips = "";
+  if (comp) chips += '<span class="chip">' + escapeHtml(comp) + '</span>';
+  for (const p of platforms) chips += '<span class="chip">' + escapeHtml(p) + '</span>';
+  const chipRow = chips ? '<div class="chip-row">' + chips + '</div>' : '';
+  return '<div class="patch-name">' + escapeHtml(name) + '</div>' + chipRow;
+}
+
+function getSupportUrl(val) {
   const urls = splitUrls(val);
-  if (!urls.length) {
-    const t = String(val||"").trim();
-    if (t.toLowerCase().startsWith("http")) urls.push(t);
-  }
-  if (!urls.length) return "";
-  const esc = escapeHtml(urls[0]);
-  return '<a class="pill open" href="' + esc + '" target="_blank" rel="noopener noreferrer">Open support page</a>';
+  if (urls.length) return urls[0];
+  const t = String(val || "").trim();
+  if (t.toLowerCase().startsWith("http")) return t;
+  return null;
 }
 
 function extractFirstHttpUrl(val) {
@@ -210,21 +215,29 @@ function getDirectPatchDownloadUrl(rowObj, osFilter) {
   return null;
 }
 
-function renderPatchActionsCell(row, colIndex, columns, osFilter) {
-  let out = '<div class="actions">';
+function buildPatchLinksCell(row, colIndex, columns, osFilter) {
+  let out = '<div class="actions actions-compact">';
+
+  const supportIdx = colIndex.get("Support Page");
+  const supportUrl = supportIdx !== undefined ? getSupportUrl(row[supportIdx]) : null;
+  if (supportUrl) {
+    out += '<a class="pill open pill-icon" href="' + escapeHtml(supportUrl) + '" target="_blank" rel="noopener noreferrer" aria-label="Open support page" title="Open support page">' + ICON_EXTERNAL + '</a>';
+  }
+
   if (activeSheet === "All_Enterprise") {
-    out += '<span class="pill disabled" title="แพตช์ชื่อเดียวกันมีหลายเวอร์ชัน กรุณาเลือกเวอร์ชันที่ต้องการจากตัวเลือก Version ด้านบนก่อนเพื่อดาวน์โหลด">เลือกเวอร์ชันก่อนดาวน์โหลด</span>';
+    out += '<span class="pill disabled pill-icon" aria-label="เลือกเวอร์ชันก่อนดาวน์โหลด" title="แพตช์ชื่อเดียวกันมีหลายเวอร์ชัน กรุณาเลือกเวอร์ชันที่ต้องการจากตัวเลือก Version ด้านบนก่อนเพื่อดาวน์โหลด">' + ICON_DOWNLOAD + '</span>';
     out += '</div>';
     return out;
   }
+
   const rowObj = colIndex.has("__row")
     ? row[colIndex.get("__row")]
     : Object.fromEntries(columns.map((c, i) => [c, row[i]]));
   const directUrl = getDirectPatchDownloadUrl(rowObj, osFilter);
   if (directUrl) {
-    out += '<a class="pill dl" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download>Download patch</a>';
+    out += '<a class="pill dl pill-icon" href="' + escapeHtml(directUrl) + '" target="_blank" rel="noopener noreferrer" download aria-label="Download patch" title="Download patch">' + ICON_DOWNLOAD + '</a>';
   } else {
-    out += '<span class="pill disabled" title="No direct download URL available in data/patches.json">Direct DL N/A</span>';
+    out += '<span class="pill disabled pill-icon" aria-label="Direct download not available" title="No direct download URL available in data/patches.json">' + ICON_DOWNLOAD + '</span>';
   }
   out += '</div>';
   return out;
@@ -371,26 +384,27 @@ async function loadPatchesLatest(force = false) {
   }
 }
 
-function showPatchTableMessage(message) {
-  const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
-  const columns = sheet?.columns?.length ? sheet.columns : ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page"];
-  const preferredOrder = ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
-  const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
+const PATCH_VISUAL_COLUMNS = ["Released", "Version", "Patch", "Security", "Links"];
+
+function renderPatchThead() {
   const thead = document.getElementById("thead");
-  if (thead) {
-    thead.innerHTML = "";
-    for (const c of visibleColumns) {
-      const th = document.createElement("th");
-      th.textContent = c;
-      thead.appendChild(th);
-    }
+  if (!thead) return;
+  thead.innerHTML = "";
+  for (const label of PATCH_VISUAL_COLUMNS) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    thead.appendChild(th);
   }
+}
+
+function showPatchTableMessage(message) {
+  renderPatchThead();
   const tbody = document.getElementById("tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
   const tr = document.createElement("tr");
   const td = document.createElement("td");
-  td.colSpan = Math.max(1, visibleColumns.length);
+  td.colSpan = PATCH_VISUAL_COLUMNS.length;
   td.textContent = message;
   td.className = "wrap";
   tr.appendChild(td);
@@ -407,8 +421,6 @@ function renderTable() {
   const sheet = DATA?.[activeSheet] || DATA?.All_Enterprise;
   if (!sheet) return;
   const {columns, rows} = sheet;
-  const preferredOrder = ["Released", "Version", "Component", "Platform", "Security", "Patch Name", "Support Page", "Download"];
-  const visibleColumns = preferredOrder.filter(c => c === "Download" || columns.includes(c));
   const colIndex = new Map(columns.map((c,i)=>[c,i]));
   const q = document.getElementById("q").value.trim().toLowerCase();
   const comp = document.getElementById("componentSel").value.trim().toLowerCase();
@@ -418,15 +430,7 @@ function renderTable() {
   const secIdx = colIndex.has("Security") ? colIndex.get("Security") : -1;
   const platIdx = colIndex.has("Platform") ? colIndex.get("Platform") : -1;
 
-  const thead = document.getElementById("thead");
-  if (thead) {
-    thead.innerHTML = "";
-    for (const c of visibleColumns) {
-      const th = document.createElement("th");
-      th.textContent = c;
-      thead.appendChild(th);
-    }
-  }
+  renderPatchThead();
 
   const filtered = rows.filter(r => {
     const norm = (v) => String(v || "").trim();
@@ -462,45 +466,38 @@ function renderTable() {
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
 
+  const releasedIdx = colIndex.get("Released");
+  const versionIdx = colIndex.get("Version");
+
   for (const r of renderRows) {
     const tr = document.createElement("tr");
-    for (const col of visibleColumns) {
-      const i = colIndex.get(col);
-      const td = document.createElement("td");
-      const val = r[i] ?? "";
-      const colLow = col.toLowerCase();
 
-      if (colLow === "download" || colLow === "links") {
-        td.innerHTML = renderPatchActionsCell(r, colIndex, columns, os);
-      } else if (colLow.includes("download") && colLow.includes("url")) {
-        td.innerHTML = renderLinksCell(val);
-      } else if (colLow.includes("support")) {
-        td.innerHTML = renderSupportCell(val);
-      } else if (colLow === "security") {
-        const v = String(val||"");
-        td.textContent = v;
-        td.className = (v === "Y") ? "nowrap secY" : "nowrap secN";
-      } else if (colLow === "released") {
-        td.textContent = String(val||"");
-        td.className = "nowrap col-date";
-      } else if (colLow === "version") {
-        td.textContent = val ? String(val) : "—";
-        td.className = "nowrap col-version";
-      } else if (colLow === "component") {
-        td.textContent = String(val||"");
-        td.className = "nowrap col-component";
-      } else if (colLow === "platform") {
-        td.textContent = String(val||"");
-        td.className = "nowrap col-platform";
-      } else if (colLow.includes("summary") || colLow.includes("patch name") || colLow.includes("name")) {
-        td.textContent = String(val||"");
-        td.className = "wrap col-name";
-      } else {
-        td.textContent = String(val||"");
-        td.className = "nowrap";
-      }
-      tr.appendChild(td);
-    }
+    const tdReleased = document.createElement("td");
+    tdReleased.textContent = String((releasedIdx !== undefined ? r[releasedIdx] : "") ?? "");
+    tdReleased.className = "nowrap col-date";
+    tr.appendChild(tdReleased);
+
+    const tdVersion = document.createElement("td");
+    const vVal = versionIdx !== undefined ? r[versionIdx] : "";
+    tdVersion.textContent = vVal ? String(vVal) : "—";
+    tdVersion.className = "nowrap col-version";
+    tr.appendChild(tdVersion);
+
+    const tdPatch = document.createElement("td");
+    tdPatch.innerHTML = buildPatchCell(r, colIndex);
+    tdPatch.className = "wrap col-patch";
+    tr.appendChild(tdPatch);
+
+    const tdSecurity = document.createElement("td");
+    tdSecurity.innerHTML = buildSecurityCell(secIdx >= 0 ? r[secIdx] : "");
+    tdSecurity.className = "nowrap col-security";
+    tr.appendChild(tdSecurity);
+
+    const tdLinks = document.createElement("td");
+    tdLinks.innerHTML = buildPatchLinksCell(r, colIndex, columns, os);
+    tdLinks.className = "nowrap col-links";
+    tr.appendChild(tdLinks);
+
     tbody.appendChild(tr);
   }
 
@@ -784,20 +781,22 @@ function renderSoftware() {
   document.getElementById('swCount').textContent = `Items: ${rows.length}`;
 
   const tb = document.getElementById('swTbody');
-  tb.innerHTML = rows.map(r => `
-    <tr>
-      <td class="nowrap">${escapeHtml(r.version === 'Unknown' ? '—' : (r.version || ''))}</td>
-      <td class="nowrap">${escapeHtml(r.component || '')}</td>
-      <td class="wrap">${escapeHtml(r.filename || '')}</td>
-      <td class="nowrap">${escapeHtml(r.sizeGB || '')}</td>
-      <td>
-        <div class="actions">
-          ${r.view ? `<a class="pill open" href="${escapeHtml(r.view)}" target="_blank" rel="noopener noreferrer">Open</a>` : ''}
-          ${r.direct ? `<a class="pill dl" href="${escapeHtml(r.direct)}" target="_blank" rel="noopener noreferrer" download>Download</a>` : ''}
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  tb.innerHTML = rows.map(r => {
+    const version = r.version === 'Unknown' ? '' : (r.version || '');
+    let chips = '';
+    if (version) chips += '<span class="chip">' + escapeHtml(version) + '</span>';
+    if (r.component) chips += '<span class="chip">' + escapeHtml(r.component) + '</span>';
+    const chipRow = chips ? ('<div class="chip-row">' + chips + '</div>') : '';
+    const swCell = '<div class="sw-name">' + escapeHtml(r.filename || '') + '</div>' + chipRow;
+    let links = '';
+    if (r.view) links += '<a class="pill open pill-icon" href="' + escapeHtml(r.view) + '" target="_blank" rel="noopener noreferrer" aria-label="Open in Google Drive" title="Open in Google Drive">' + ICON_EXTERNAL + '</a>';
+    if (r.direct) links += '<a class="pill dl pill-icon" href="' + escapeHtml(r.direct) + '" target="_blank" rel="noopener noreferrer" download aria-label="Download" title="Download">' + ICON_DOWNLOAD + '</a>';
+    return '<tr>'
+      + '<td class="wrap col-software">' + swCell + '</td>'
+      + '<td class="nowrap">' + escapeHtml(r.sizeGB || '') + '</td>'
+      + '<td class="nowrap col-links"><div class="actions actions-compact">' + links + '</div></td>'
+      + '</tr>';
+  }).join('');
 }
 
 // Tabs + menu
