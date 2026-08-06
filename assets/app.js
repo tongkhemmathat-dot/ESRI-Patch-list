@@ -960,15 +960,29 @@ downloadBtn?.addEventListener('click', async () => {
 // ===== New patch notification banner (home page) =====
 // Reads data/bulletin.json so the notice can be updated each month a new
 // ArcGIS Security Bulletin / patch drops without touching any markup.
+// Always visible (no dismiss) — a content hash flags when the text itself
+// has been edited since the last visit, independent of publishedDate.
 const BULLETIN_JSON_URL = './data/bulletin.json';
-const BULLETIN_DISMISS_KEY = 'patchAlertDismissed';
+const BULLETIN_HASH_KEY = 'patchAlertContentHash';
 
 const patchAlert = document.getElementById('patchAlert');
 const patchAlertMonth = document.getElementById('patchAlertMonth');
 const patchAlertTitle = document.getElementById('patchAlertTitle');
 const patchAlertSub = document.getElementById('patchAlertSub');
 const patchAlertLink = document.getElementById('patchAlertLink');
-const patchAlertClose = document.getElementById('patchAlertClose');
+const patchAlertBadge = document.getElementById('patchAlertBadge');
+
+// Lightweight FNV-1a hash (not cryptographic) — just enough to fingerprint
+// the bulletin text so an edit changes the hash even if publishedDate is
+// left untouched by mistake.
+function hashText(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16);
+}
 
 async function loadPatchAlert() {
   if (!patchAlert) return;
@@ -977,27 +991,21 @@ async function loadPatchAlert() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const b = await res.json();
     if (!b?.title || !b?.url) return;
-    const dismissedId = (() => { try { return localStorage.getItem(BULLETIN_DISMISS_KEY); } catch (e) { return null; } })();
-    const bulletinId = b.publishedDate || b.url;
-    if (dismissedId === bulletinId) return;
+
+    const contentHash = hashText([b.title, b.summary || '', b.url].join('||'));
+    const lastSeenHash = (() => { try { return localStorage.getItem(BULLETIN_HASH_KEY); } catch (e) { return null; } })();
+    const isUpdated = lastSeenHash !== contentHash;
+    try { localStorage.setItem(BULLETIN_HASH_KEY, contentHash); } catch (e) {}
 
     patchAlertMonth.textContent = b.month || '';
     patchAlertTitle.textContent = b.title;
     patchAlertSub.textContent = b.summary || '';
     patchAlertLink.href = b.url;
-    patchAlert.dataset.bulletinId = bulletinId;
+    if (patchAlertBadge) patchAlertBadge.style.display = isUpdated ? 'inline-flex' : 'none';
     patchAlert.style.display = 'flex';
   } catch (e) {
     // Silently skip the banner if the bulletin data can't be loaded.
   }
 }
-
-patchAlertClose?.addEventListener('click', () => {
-  const id = patchAlert?.dataset.bulletinId;
-  if (id) {
-    try { localStorage.setItem(BULLETIN_DISMISS_KEY, id); } catch (e) {}
-  }
-  if (patchAlert) patchAlert.style.display = 'none';
-});
 
 loadPatchAlert();

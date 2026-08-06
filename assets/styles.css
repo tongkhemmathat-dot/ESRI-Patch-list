@@ -451,7 +451,20 @@
   .patch-alert-sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
   .patch-alert-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .patch-alert-actions .btn{padding:8px 14px;font-size:.85rem}
-  #patchAlertClose{min-width:36px;padding:8px;border-color:var(--border)}
+  .patch-alert-badge{
+    display:inline-flex;
+    align-items:center;
+    margin-left:8px;
+    padding:2px 8px;
+    border-radius:999px;
+    background:var(--danger);
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    vertical-align:middle;
+  }
   @media (max-width:600px){
     .patch-alert{flex-direction:column}
     .patch-alert-actions{width:100%}
