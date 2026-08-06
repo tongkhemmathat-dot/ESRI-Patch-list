@@ -432,3 +432,28 @@
   .pin-modal-error{min-height:18px;color:var(--danger);font-size:12px;margin-top:8px}
   .pin-modal-actions{display:flex;gap:10px;margin-top:14px;justify-content:center}
   .pin-modal-actions .btn{flex:1;min-width:0}
+  .patch-alert{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    border:1px solid rgba(224,122,31,.4);
+    border-radius:18px;
+    background:linear-gradient(135deg, var(--pill-dl), var(--panel));
+    box-shadow:var(--shadow);
+    padding:16px 18px;
+    margin:0 0 16px;
+    animation:fadeInUp .5s ease both;
+  }
+  .patch-alert-icon{font-size:22px;line-height:1}
+  .patch-alert-body{flex:1 1 auto;min-width:0}
+  .patch-alert-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-weight:700;margin-bottom:4px}
+  .patch-alert-title{font-size:15px;font-weight:800;color:var(--fg)}
+  .patch-alert-sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
+  .patch-alert-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .patch-alert-actions .btn{padding:8px 14px;font-size:.85rem}
+  #patchAlertClose{min-width:36px;padding:8px;border-color:var(--border)}
+  @media (max-width:600px){
+    .patch-alert{flex-direction:column}
+    .patch-alert-actions{width:100%}
+    .patch-alert-actions .btn{flex:1}
+  }
