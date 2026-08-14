@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link
-  href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+  href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
   rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 
@@ -15,7 +15,7 @@
 <body>
 <header>
   <div class="hero">
-    <div class="kicker">ArcGIS Enterprise Download</div>
+    <div class="kicker">arcgis-ent // patch-console</div>
     <h1>ArcGIS Enterprise Download Assist</h1>
     <div class="sub">Select version from dropdown. Click Open/Download buttons for each patch file link.</div>
   </div>
@@ -36,6 +36,10 @@
 <section id="menuView">
   <div id="patchAlert" class="patch-alert" style="display:none;">
     <div class="patch-alert-icon" aria-hidden="true">🛡️</div>
+    <div class="patch-alert-stamp">
+      <span class="patch-alert-stamp-label">last update</span>
+      <span class="patch-alert-stamp-date" id="patchAlertStampDate"></span>
+    </div>
     <div class="patch-alert-body">
       <div class="patch-alert-kicker">
         แจ้งเตือนแพตช์ใหม่ · <span id="patchAlertMonth"></span>
@@ -52,18 +56,21 @@
   <div class="menu-wrap">
     <a class="card-link" href="./index.html#patch" aria-label="Open Patch List">
       <div class="menu-card main-menu-card">
+        <div class="card-eyebrow">open patch-list</div>
         <h2 class="menu-title">รายการแพตช์</h2>
         <p class="menu-sub">ค้นหาและกรองแพตช์ ArcGIS Enterprise ตามเวอร์ชันที่ต้องการ.</p>
       </div>
     </a>
     <a class="card-link" href="./index.html#software" aria-label="Open Download Software">
       <div class="menu-card main-menu-card">
+        <div class="card-eyebrow">open software</div>
         <h2 class="menu-title">ดาวน์โหลดซอฟต์แวร์</h2>
         <p class="menu-sub">ดูไฟล์ติดตั้ง ขนาด และลิงก์ดาวน์โหลดแบบตรง.</p>
       </div>
     </a>
     <a class="card-link" href="./scripts.html" aria-label="Scripts & Tools">
       <div class="menu-card main-menu-card">
+        <div class="card-eyebrow">open scripts-tools</div>
         <h2 class="menu-title">Scripts &amp; Tools</h2>
         <p class="menu-sub">สคริปต์และเครื่องมือสำหรับงานแพตช์และการปิดการตรวจอัปเดต.</p>
       </div>
@@ -206,7 +213,7 @@
 </div>
 
 <footer>
-  Powered By Khemmathat for Internal USE ONLY!! (v0.19)
+  Powered By Khemmathat for Internal USE ONLY!! (v0.20)
 </footer>
 
 <script defer src="assets/app.js"></script>

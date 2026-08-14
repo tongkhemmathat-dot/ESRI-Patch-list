@@ -971,6 +971,8 @@ const patchAlertSub = document.getElementById('patchAlertSub');
 const patchAlertLink = document.getElementById('patchAlertLink');
 const patchAlertBadge = document.getElementById('patchAlertBadge');
 const patchAlertUpdated = document.getElementById('patchAlertUpdated');
+const patchAlertStampDate = document.getElementById('patchAlertStampDate');
+const patchAlertStamp = patchAlertStampDate ? patchAlertStampDate.closest('.patch-alert-stamp') : null;
 
 // Lightweight FNV-1a hash (not cryptographic) — just enough to fingerprint
 // the bulletin text so an edit changes the hash even if publishedDate is
@@ -1000,7 +1002,14 @@ async function loadPatchAlert() {
     patchAlertMonth.textContent = b.month || '';
     patchAlertTitle.textContent = b.title;
     patchAlertSub.textContent = b.summary || '';
-    if (patchAlertUpdated) patchAlertUpdated.textContent = b.lastUpdate ? `อัปเดตข้อมูลล่าสุด: ${b.lastUpdate}` : '';
+    if (patchAlertUpdated) {
+      const parts = [];
+      if (b.publishedDate) parts.push(`PUBLISHED ${b.publishedDate}`);
+      if (b.lastUpdate) parts.push(`UPDATED ${b.lastUpdate}`);
+      patchAlertUpdated.textContent = parts.join('  ·  ');
+    }
+    if (patchAlertStampDate) patchAlertStampDate.textContent = b.lastUpdate || '';
+    if (patchAlertStamp) patchAlertStamp.style.display = b.lastUpdate ? 'flex' : 'none';
     patchAlertLink.href = b.url;
     if (patchAlertBadge) patchAlertBadge.style.display = isUpdated ? 'inline-flex' : 'none';
     patchAlert.style.display = 'flex';
