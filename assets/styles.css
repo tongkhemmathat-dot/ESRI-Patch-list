@@ -469,6 +469,7 @@
   .patch-alert-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-weight:700;margin-bottom:4px}
   .patch-alert-title{font-size:15px;font-weight:800;color:var(--fg)}
   .patch-alert-sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
+  .patch-alert-meta{font-size:11px;color:var(--muted);margin-top:6px;opacity:.85}
   .patch-alert-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .patch-alert-badge{
     display:inline-flex;

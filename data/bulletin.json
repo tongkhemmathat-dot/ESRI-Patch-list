@@ -3,5 +3,6 @@
   "title": "August 2026 ArcGIS Security Bulletin",
   "summary": "Portal for ArcGIS 2026 Security Update 3 แก้ไขช่องโหว่ความปลอดภัยระดับ Medium และ Low ใน Portal for ArcGIS เวอร์ชัน 12.1 และเก่ากว่า แนะนำให้ติดตั้งแพตช์ภายใน 2 สัปดาห์",
   "url": "https://www.esri.com/arcgis-blog/products/arcgis-enterprise/administration/august-2026-arcgis-security-bulletin",
-  "publishedDate": "2026-08-05"
+  "publishedDate": "2026-08-05",
+  "lastUpdate": "2026-08-14"
 }
